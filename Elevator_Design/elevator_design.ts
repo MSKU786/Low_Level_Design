@@ -41,14 +41,15 @@ class Elevator {
   stop(): void {
     this.state.direction = Direction.IDLE;
     this.state.isIdle = true;
-    this.stops.delete(this.state.currentFloor);\
+    this.stops.delete(this.state.currentFloor);
     this.openDoors();
   }
 
-
   // Open doors
   openDoors(): void {
-    console.log(`Elevator ${this.id}: Doors Open at Floor ${this.state.currentFloor}`);
+    console.log(
+      `Elevator ${this.id}: Doors Open at Floor ${this.state.currentFloor}`
+    );
   }
 
   scheduleStops(floor: number): void {
@@ -56,10 +57,12 @@ class Elevator {
     this.updateDirection(floor);
   }
 
-    // Update direction based on target floor
+  // Update direction based on target floor
   private updateDirection(targetFloor: number): void {
-    if (targetFloor > this.state.currentFloor) this.state.direction = Direction.UP;
-    else if (targetFloor < this.state.currentFloor) this.state.direction = Direction.DOWN;
+    if (targetFloor > this.state.currentFloor)
+      this.state.direction = Direction.UP;
+    else if (targetFloor < this.state.currentFloor)
+      this.state.direction = Direction.DOWN;
     else this.state.direction = Direction.IDLE;
   }
 
@@ -74,7 +77,6 @@ class Elevator {
   }
 }
 
-
 class SmartDispatcher {
   private elevators: Elevator[];
 
@@ -82,8 +84,8 @@ class SmartDispatcher {
     this.elevators = elevators;
   }
 
-  assingElevator(floor:  number, direction: Direction) {
-    let bestElevator: Elevator|null = null;
+  assingElevator(floor: number, direction: Direction) {
+    let bestElevator: Elevator | null = null;
     let bestScore = Infinity;
 
     for (let elevator of this.elevators) {
@@ -92,17 +94,19 @@ class SmartDispatcher {
       let currentFloor = state.currentFloor;
       let distance = Math.abs(currentFloor - floor);
 
-      //calcuation best elevator based on direction and distance 
+      //calcuation best elevator based on direction and distance
       const score =
-      state.isIdle ||
-      (state.direction === direction && ((direction === Direction.UP && state.currentFloor <= floor) || (direction === Direction.DOWN && state.currentFloor >= floor)))
-        ? distance
-        : Infinity;
+        state.isIdle ||
+        (state.direction === direction &&
+          ((direction === Direction.UP && state.currentFloor <= floor) ||
+            (direction === Direction.DOWN && state.currentFloor >= floor)))
+          ? distance
+          : Infinity;
 
       if (score > bestScore) {
         bestElevator = elevator;
-        bestScore = score
-      }   
+        bestScore = score;
+      }
     }
 
     if (bestElevator) {
@@ -112,7 +116,6 @@ class SmartDispatcher {
     return bestElevator;
   }
 }
-
 
 // Floor Class
 class Floor {
@@ -125,7 +128,9 @@ class Floor {
   // Call elevator
   callElevator(dispatcher: SmartDispatcher, direction: Direction): void {
     const elevator = dispatcher.assingElevator(this.floorNumber, direction);
-    console.log(`Elevator ${elevator!.getId()} assigned to Floor ${this.floorNumber}`);
+    console.log(
+      `Elevator ${elevator!.getId()} assigned to Floor ${this.floorNumber}`
+    );
   }
 }
 
@@ -135,26 +140,29 @@ class ElevatorSystem {
   private dispatcher: SmartDispatcher;
 
   constructor(numElevators: number, numFloors: number) {
-    let elevators: Elevator[] = []
-    for (let i=0; i<numElevators; i++) {
-      elevators.push(new Elevator(i+1));
+    let elevators: Elevator[] = [];
+    for (let i = 0; i < numElevators; i++) {
+      elevators.push(new Elevator(i + 1));
     }
     this.elevators = elevators;
-    let floors : Floor[] = [];
-    for (let i=0; i<numFloors; i++)
-        floors.push(new Floor(i+1));
+    let floors: Floor[] = [];
+    for (let i = 0; i < numFloors; i++) floors.push(new Floor(i + 1));
     this.floors = floors;
     this.dispatcher = new SmartDispatcher(this.elevators);
   }
 
-    // Simulate the system
-    simulate(): void {
-      // Example: A user calls an elevator from the 5th floor to go up
-      this.floors[4].callElevator(this.dispatcher, Direction.Up);
-  
-      // Move elevators and handle their states
-      for (const elevator of this.elevators) {
-        elevator.move();
-      }
+  // Simulate the system
+  simulate(): void {
+    // Example: A user calls an elevator from the 5th floor to go up
+    this.floors[4].callElevator(this.dispatcher, Direction.UP);
+
+    // Move elevators and handle their states
+    for (const elevator of this.elevators) {
+      elevator.move();
     }
+  }
 }
+
+
+const system = new ElevatorSystem(3, 15);
+system.simulate();

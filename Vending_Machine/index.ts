@@ -154,4 +154,39 @@ public class ItemShelf {
     }
 }
 
+
+public class Inventory{
+  inventory : ItemShelf[];
+
+  constructor(itemCount: number) {
+    this.inventory = new Array(itemCount);
+    initialEmptyInventory();
+  }
+
+  public getInventory() : ItemShelf[] {
+    return this.inventory;
+  }
+
+  public setInventory(inventory: ItemShelf[]) {
+    this.inventory = inventory;
+  }
+
+  public initialEmptyInventory() {
+    let startCode = 101;
+    for (let i=0; i<this.inventory.length; i++) {
+      let space = new ItemShelf();
+      space.setCode(startCode);
+      space.setSoldOut(true);
+      this.inventory[i] = space;
+      startCode++;
+    }
+  }
+
+  public addItem(Item item, int codeNumber) {
+
+  }
+}
+
+
+
 class VendingMachine {}

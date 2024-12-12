@@ -126,4 +126,32 @@ class SelctionState implements State{
   }
   
 }
+
+
+public class ItemShelf {
+    code: Number;
+    item: Item;
+    soldOut: Boolean
+
+    public getCode(): Number {
+      return this.code;
+    }
+
+    public setCode(code: Number): void {
+        this.code = code;
+    }
+
+    public getItem(): Item{
+      return this.item;
+    }
+
+    public isSoldOut(): Boolean {
+      return this.soldOut;
+    }
+
+    public setSoldOut(soldOut: boolean) : void {
+      this.soldOut = soldOut;
+    }
+}
+
 class VendingMachine {}

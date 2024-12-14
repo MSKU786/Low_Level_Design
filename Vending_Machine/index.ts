@@ -3,6 +3,18 @@
 State Design Patter
 
 */
+class Coin {
+  static PENNY = new Coin(1);
+  static NICKEL = new Coin(5);
+  static DIME = new Coin(10);
+  static QUARTER = new Coin(25);
+
+  private constructor(value: number) {
+    this.value = value;
+  }
+
+  private readonly value: number;
+}
 
 interface product {
   code: Number;
@@ -16,18 +28,42 @@ interface State {
   ChooseProduct(machine: VendingMachine, code: Number): void;
   GetChange(machine: VendingMachine): number;
   DispatchProduct(machine: VendingMachine, code: Number): Item;
-  RefundMoney(machine: VendingMachine): []Coin;
+  RefundMoney(machine: VendingMachine): Coin[];
   UpdateInventory(machine: VendingMachine, item: Item, code: Number): void;
 }
 
-class IdleState implements State{
-
-  constructor (machine : VendingMachine) {
-    console.log("Currently vending machine is inidle state");
-    machine.setCoinList(new Array());
+class SelctionStatee implements State{
+  PressInsertCoinButton(machine: VendingMachine): void {
+    throw new Error("Method not implemented.");
+  }
+  PressProductSelectionButton(machine: VendingMachine): void {
+    throw new Error("Method not implemented.");
+  }
+  InsertCoin(machine: VendingMachine, coin: Coin): void {
+    throw new Error("Method not implemented.");
+  }
+  ChooseProduct(machine: VendingMachine, code: Number): void {
+    throw new Error("Method not implemented.");
+  }
+  GetChange(machine: VendingMachine): number {
+    throw new Error("Method not implemented.");
   }
 
+  DispatchProduct(machine: VendingMachine, code: Number): Item | null {
+    console.log("Method not implemented")
+    return null;
+  }
+  RefundMoney(machine: VendingMachine): Coin[] {
+    throw new Error("Method not implemented.");
+  }
+  UpdateInventory(machine: VendingMachine, item: Item, code: Number): void {
+    throw new Error("Method not implemented.");
+  }
+  
+}
 
+
+class DispenseState implements State{
   PressInsertCoinButton(machine: VendingMachine): void {
     throw new Error("Method not implemented.");
   }
@@ -46,14 +82,59 @@ class IdleState implements State{
   DispatchProduct(machine: VendingMachine, code: Number) {
     throw new Error("Method not implemented.");
   }
-  RefundMoney(machine: VendingMachine): [] {
+  RefundMoney(machine: VendingMachine): Coin[] {
     throw new Error("Method not implemented.");
   }
-  Coin: any;
   UpdateInventory(machine: VendingMachine, item: Item, code: Number): void {
     throw new Error("Method not implemented.");
   }
+
 }
+
+class IdleState implements State {
+  constructor(machine: VendingMachine) {
+    console.log("Currently vending machine is in idle state.");
+    machine.setCoinList([]);
+  }
+
+  PressInsertCoinButton(machine: VendingMachine): void {
+    console.log("Coin insert button pressed. Transitioning to 'HasMoneyState'.");
+    machine.setMachineState(new HasMoneyState());
+  }
+
+  PressProductSelectionButton(machine: VendingMachine): void {
+    console.log("Insert coin first.");
+  }
+
+  InsertCoin(machine: VendingMachine, coin: Coin): void {
+    console.log("Insert coin button needs to be pressed first.");
+  }
+
+  ChooseProduct(machine: VendingMachine, code: Number): void {
+    console.log("Insert coin first.");
+  }
+
+  GetChange(machine: VendingMachine): number {
+    console.log("No money inserted to return.");
+    return 0;
+  }
+
+  DispatchProduct(machine: VendingMachine, code: Number): Item | null {
+    console.log("No product can be dispatched. Insert coin first.");
+    return null;
+  }
+
+  RefundMoney(machine: VendingMachine): Coin[] {
+    console.log("No money to refund.");
+    return [];
+  }
+
+  UpdateInventory(machine: VendingMachine, item: Item, code: Number): void {
+    machine.getInventory().addItem(item, code);
+    console.log(`Item added to inventory at code ${code}.`);
+  }
+}
+
 
 class HasMoneyState implements State{
   
@@ -83,6 +164,7 @@ class HasMoneyState implements State{
 
   DispatchProduct(machine: VendingMachine, code: Number) {
     throw new Error("Method not implemented.");
+    return null;
   }
 
   RefundMoney(machine: VendingMachine): [] {
@@ -196,6 +278,91 @@ public class Inventory{
   }
 }
 
+class Item {
+  name: string;
+  price: number;
+
+  constructor(name: string, price: number) {
+    this.name = name;
+    this.price = price;
+  }
+}
 
 
-class VendingMachine {}
+class VendingMachine {
+  private currentState: State;
+  private coinList: Coin[];
+  private inventory: Inventory;
+  private collectedMoney: number;
+
+  constructor(itemCount: number) {
+    this.currentState = new IdleState(this);
+    this.coinList = [];
+    this.inventory = new Inventory(itemCount);
+    this.collectedMoney = 0;
+  }
+
+  public setMachineState(state: State): void {
+    this.currentState = state;
+  }
+
+  public getMachineState(): State {
+    return this.currentState;
+  }
+
+  public getCoinList(): Coin[] {
+    return this.coinList;
+  }
+
+  public setCoinList(coinList: Coin[]): void {
+    this.coinList = coinList;
+  }
+
+  public getInventory(): Inventory {
+    return this.inventory;
+  }
+
+  public addCollectedMoney(amount: number): void {
+    this.collectedMoney += amount;
+  }
+
+  public getCollectedMoney(): number {
+    return this.collectedMoney;
+  }
+
+  public resetCollectedMoney(): void {
+    this.collectedMoney = 0;
+  }
+
+  public pressInsertCoinButton(): void {
+    this.currentState.PressInsertCoinButton(this);
+  }
+
+  public pressProductSelectionButton(): void {
+    this.currentState.PressProductSelectionButton(this);
+  }
+
+  public insertCoin(coin: Coin): void {
+    this.currentState.InsertCoin(this, coin);
+  }
+
+  public chooseProduct(code: Number): void {
+    this.currentState.ChooseProduct(this, code);
+  }
+
+  public getChange(): number {
+    return this.currentState.GetChange(this);
+  }
+
+  public dispatchProduct(code: Number): Item | null {
+    return this.currentState.DispatchProduct(this, code);
+  }
+
+  public refundMoney(): Coin[] {
+    return this.currentState.RefundMoney(this);
+  }
+
+  public updateInventory(item: Item, code: Number): void {
+    this.currentState.UpdateInventory(this, item, code);
+  }
+}

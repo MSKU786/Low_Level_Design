@@ -160,7 +160,7 @@ public class Inventory{
 
   constructor(itemCount: number) {
     this.inventory = new Array(itemCount);
-    initialEmptyInventory();
+    this.initialEmptyInventory();
   }
 
   public getInventory() : ItemShelf[] {
@@ -182,8 +182,17 @@ public class Inventory{
     }
   }
 
-  public addItem(Item item, int codeNumber) {
-
+  public addItem(item : Item ,  codeNumber : number) {
+      for (let itemShelf of this.inventory) {
+        if (itemShelf.code === codeNumber) {
+          if (itemShelf.isSoldOut()) {
+            itemShelf.item = item;
+            itemShelf.setSoldOut(false)
+          } else {
+            throw new Error("Already item is Present")
+          }
+        }
+      }
   }
 }
 

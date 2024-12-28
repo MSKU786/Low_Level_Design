@@ -68,7 +68,7 @@ class PriceTrackerSystem {
     string,
     (product: Product, oldPrice: number, newPrice: number) => void
   >;
-  private userSubscriptions: Map<string, Set<User>>;
+  private userSubscriptions: Map<string, Set<User>>; // Product id to set of users
 
   constructor() {
     this.productListeners = new Map();

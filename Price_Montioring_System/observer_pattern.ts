@@ -39,3 +39,39 @@ class Product {
     this.notifyObservers();
   }
 }
+
+class User implements Observer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  wishlist: Map<string, number>; // Map of product id and threshols price
+
+  constructor(firstName: string, lastName: string) {
+    this.id = User.generateId();
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.wishlist = new Map();
+  }
+
+  static generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
+  }
+
+  addToWishlist(product: Product, thresholdPrice: number): void {
+    product.attach(this);
+    this.wishlist.set(product.id, thresholdPrice);
+  }
+
+  update(product: Product, newPrice: number): void {
+    const thresholdPrice = this.wishlist.get(product.id);
+    if (thresholdPrice !== undefined && newPrice <= thresholdPrice) {
+      this.notifyUser(product, newPrice);
+    }
+  }
+
+  private notifyUser(product: Product, newPrice: number): void {
+    console.log(
+      `Notification: Dear ${this.firstName}, the price of ${product.name} has dropped to ${newPrice}!`
+    );
+  }
+}

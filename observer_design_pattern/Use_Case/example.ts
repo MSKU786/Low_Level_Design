@@ -5,12 +5,12 @@ Use Case: Implementing event listeners or real-time notifications.
 
 */
 
-// Observer interface
-interface Observer {
+// Obs interface
+interface Obs {
   update(message: string): void;
 }
 
-class ConcreteObserver implements Observer {
+class ConcreteObs implements Obs {
   private name: string;
 
   constructor(name: string) {
@@ -22,10 +22,10 @@ class ConcreteObserver implements Observer {
   }
 }
 
-class Subject {
-  private observers: Observer[] = [];
+class Sub {
+  private observers: Obs[] = [];
 
-  attach(observer: Observer): void {
+  attach(observer: Obs): void {
     this.observers.push(observer);
   }
 
@@ -37,11 +37,11 @@ class Subject {
   }
 }
 
-const subject = new Subject();
-const observer1 = new ConcreteObserver('Observer1');
-const observer2 = new ConcreteObserver('Observer2');
+const subject = new Sub();
+const observer1 = new ConcreteObs('Obs1');
+const observer2 = new ConcreteObs('Obs2');
 
 subject.attach(observer1);
 subject.attach(observer2);
 
-subject.notify('Hello Observers!');
+subject.notify('Hello Obss!');

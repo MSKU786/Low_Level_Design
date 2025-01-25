@@ -5,7 +5,7 @@ interface Subject {
 }
 
 interface Observer {
-  update(temp: number, humidity: number, pressure: number): void;
+  update(): void;
 }
 
 interface Display {
@@ -20,6 +20,9 @@ class WeatherData implements Subject {
 
   constructor() {
     this.observers = [];
+    this.temperature = 0;
+    this.humidity = 0;
+    this.pressure = 0;
   }
 
   registerObserver(o: Observer): void {
@@ -31,13 +34,23 @@ class WeatherData implements Subject {
   }
 
   notifyObservers(): void {
-    this.observers.forEach((observer) =>
-      observer.update(this.temperature, this.humidity, this.pressure)
-    );
+    this.observers.forEach((observer) => observer.update());
   }
 
   measurementsChanged(): void {
     this.notifyObservers();
+  }
+
+  getPressure(): number {
+    return this.pressure;
+  }
+
+  getTemprature(): number {
+    return this.temperature;
+  }
+
+  getHumidity(): number {
+    return this.humidity;
   }
 
   setMeasurements(
@@ -56,17 +69,17 @@ class CurrentConditionDisplay implements Observer, Display {
   private temperature: number;
   private humidity: number;
   private pressure: number;
-  private weatherData: Subject;
+  private weatherData: WeatherData;
 
-  constructor(weatherData: Subject) {
+  constructor(weatherData: WeatherData) {
     this.weatherData = weatherData;
     weatherData.registerObserver(this);
   }
 
-  update(temperature: number, humidity: number, pressure: number): void {
-    this.temperature = temperature;
-    this.humidity = humidity;
-    this.pressure = pressure;
+  update(): void {
+    this.temperature = this.weatherData.getTemprature();
+    this.humidity = this.weatherData.getHumidity();
+    this.pressure = this.weatherData.getPressure();
     this.display();
   }
 

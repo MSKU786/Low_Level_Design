@@ -113,3 +113,16 @@ class ChicagoStyleVeggiePizza extends Pizza {
     console.log('Cutting the pizza into square slices');
   }
 }
+
+class PizzaTestDrive {
+  public static main() {
+    let nyStore: PizzaStore = new NYPizzaStore();
+    let chicagoStore: PizzaStore = new ChicagoPizzaStore();
+
+    let pizza: Pizza | null = nyStore.orderPizza('cheese');
+    console.log('Ethan ordered a ' + pizza?.getName() + '\n');
+
+    pizza = chicagoStore.orderPizza('veggie');
+    console.log('Joel ordered a ' + pizza?.getName() + '\n');
+  }
+}

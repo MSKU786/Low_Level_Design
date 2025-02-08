@@ -33,14 +33,14 @@ class ChicagoPizzaStore extends PizzaStore {
 
 // Start with an abstract Pizza class and all the concrete pizza classes will extend this class
 abstract class Pizza {
-  name: string;
-  dough: string;
-  sauce: string;
+  name!: string;
+  dough!: string;
+  sauce!: string;
   toppings: string[] = [];
 
   // prepare follows a number of steps in a particular sequence(template method)
   prepare() {
-    console.log('Preparing ' + name);
+    console.log('Preparing ' + this.name);
     console.log('Tossing dough...');
     console.log('Adding sauce....');
     console.log('Adding toppings: ');

@@ -114,6 +114,21 @@ class ChicagoStyleVeggiePizza extends Pizza {
   }
 }
 
+interface PizzaIngredientFactory {
+  createDough(): Dough;
+  createSauce(): Sauce;
+  createCheese(): Cheese;
+  createPepperoni(): Pepperoni;
+  createVeggies(): Veggies[];
+  createClam(): Clam;
+}
+
+interface Dough {}
+interface Sauce {}
+interface Cheese {}
+interface Pepperoni {}
+interface Clam {}
+interface Veggies {}
 class PizzaTestDrive {
   public static main() {
     let nyStore: PizzaStore = new NYPizzaStore();

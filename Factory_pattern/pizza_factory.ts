@@ -129,6 +129,67 @@ interface Cheese {}
 interface Pepperoni {}
 interface Clam {}
 interface Veggies {}
+
+class ThinCrustDough implements Dough {
+
+}
+
+class MarinaraSauce implements Sauce {
+
+}
+
+class ReggianoCheese implements Cheese {
+
+}
+
+class Garlic implements Veggies {
+
+}
+
+class Onion implements Veggies {
+
+}
+
+class Mushroom implements Veggies {
+
+}
+
+class SlicedPepperoni implements Pepperoni {
+
+}
+
+class FreshClams implements Clam {
+
+}
+
+class NYPizzaIngredientFactory implements PizzaIngredientFactory {
+    createDough() : Dough {
+      return new ThinCrustDough();
+    }
+
+    createSauce() : Sauce {
+      return new MarinaraSauce();
+    }
+
+    createCheese(): Cheese {
+      return new ReggianoCheese();
+    }
+
+    createVeggies() : Veggies[] {
+      let veggies: Veggies[]  = {new Garlic(), new Onion(), new Mushroom()}
+      return veggies;
+    }
+
+    createPepperoni() : Pepperoni{
+      return new SlicedPepperoni();
+    }
+
+    createClam(): Clam {
+      return new FreshClams();
+    }
+}
+
+
 class PizzaTestDrive {
   public static main() {
     let nyStore: PizzaStore = new NYPizzaStore();

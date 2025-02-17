@@ -123,15 +123,34 @@ interface PizzaIngredientFactory {
   createClam(): Clam;
 }
 
-interface Dough {}
-interface Sauce {}
-interface Cheese {}
-interface Pepperoni {}
-interface Clam {}
-interface Veggies {}
+interface Dough {
+  getDescription(): string;
+}
+
+interface Sauce {
+  getDescription(): string;
+}
+
+interface Cheese {
+  getDescription(): string;
+}
+
+interface Pepperoni {
+  getDescription(): string;
+}
+
+interface Clam {
+  getDescription(): string;
+}
+
+interface Veggies {
+  getDescription(): string;
+}
 
 class ThinCrustDough implements Dough {
-
+  getDescription(): string {
+    return "Thin Crust Dough";
+  }
 }
 
 class MarinaraSauce implements Sauce {

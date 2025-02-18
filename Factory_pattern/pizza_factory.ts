@@ -39,15 +39,7 @@ abstract class Pizza {
   toppings: string[] = [];
 
   // prepare follows a number of steps in a particular sequence(template method)
-  prepare() {
-    console.log('Preparing ' + this.name);
-    console.log('Tossing dough...');
-    console.log('Adding sauce....');
-    console.log('Adding toppings: ');
-    for (let topping of this.toppings) {
-      console.log(' ' + topping);
-    }
-  }
+  abstract prepare();
 
   // the abstract class provide some basic defaults like bake , cut and box
   bake() {
@@ -64,6 +56,10 @@ abstract class Pizza {
 
   getName(): string {
     return this.name;
+  }
+
+  setName(name): void {
+    this.name = name;
   }
 }
 
@@ -149,65 +145,78 @@ interface Veggies {
 
 class ThinCrustDough implements Dough {
   getDescription(): string {
-    return "Thin Crust Dough";
+    return 'Thin Crust Dough';
   }
 }
 
 class MarinaraSauce implements Sauce {
-
+  getDescription(): string {
+    return 'Marinara Sauce';
+  }
 }
 
 class ReggianoCheese implements Cheese {
-
+  getDescription(): string {
+    return 'Reggiano Cheese';
+  }
 }
 
 class Garlic implements Veggies {
-
+  getDescription(): string {
+    return 'Garlic';
+  }
 }
 
 class Onion implements Veggies {
-
+  getDescription(): string {
+    return 'Onion';
+  }
 }
 
 class Mushroom implements Veggies {
-
+  getDescription(): string {
+    return 'Mushroom';
+  }
 }
 
 class SlicedPepperoni implements Pepperoni {
-
+  getDescription(): string {
+    return 'Sliced Pepperoni';
+  }
 }
 
 class FreshClams implements Clam {
-
+  getDescription(): string {
+    return 'Fresh Clams';
+  }
 }
 
 class NYPizzaIngredientFactory implements PizzaIngredientFactory {
-    createDough() : Dough {
-      return new ThinCrustDough();
-    }
+  createDough(): Dough {
+    return new ThinCrustDough();
+  }
 
-    createSauce() : Sauce {
-      return new MarinaraSauce();
-    }
+  createSauce(): Sauce {
+    return new MarinaraSauce();
+  }
 
-    createCheese(): Cheese {
-      return new ReggianoCheese();
-    }
+  createCheese(): Cheese {
+    return new ReggianoCheese();
+  }
 
-    createVeggies() : Veggies[] {
-      let veggies: Veggies[]  = {new Garlic(), new Onion(), new Mushroom()}
-      return veggies;
-    }
+  createVeggies(): Veggies[] {
+    let veggies: Veggies[] = [new Garlic(), new Onion(), new Mushroom()];
+    return veggies;
+  }
 
-    createPepperoni() : Pepperoni{
-      return new SlicedPepperoni();
-    }
+  createPepperoni(): Pepperoni {
+    return new SlicedPepperoni();
+  }
 
-    createClam(): Clam {
-      return new FreshClams();
-    }
+  createClam(): Clam {
+    return new FreshClams();
+  }
 }
-
 
 class PizzaTestDrive {
   public static main() {

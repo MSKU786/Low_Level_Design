@@ -63,6 +63,7 @@ abstract class Pizza {
   }
 }
 
+/*
 class NYStyleCheesePizza extends Pizza {
   public NYStyleChessePizza() {
     this.name = 'NY Style Sauce and Cheese Pizza';
@@ -109,6 +110,8 @@ class ChicagoStyleVeggiePizza extends Pizza {
     console.log('Cutting the pizza into square slices');
   }
 }
+
+*/
 
 interface PizzaIngredientFactory {
   createDough(): Dough;

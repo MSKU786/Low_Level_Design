@@ -36,6 +36,12 @@ class LightOnCommand implements Command {
 }
 
 class Light {
+  type: string;
+
+  constructor(type: string) {
+    this.type = type;
+  }
+
   on() {
     console.log('The light is on');
   }
@@ -93,4 +99,10 @@ class RemoteControl {
       );
     }
   }
+}
+
+class RemoteLoader {
+  RemoteControl: RemoteControl = new RemoteControl();
+  livingRoomLight: Light = new Light('Living Room');
+  kithchenLight: Light = new Light('Kitchen Llight');
 }

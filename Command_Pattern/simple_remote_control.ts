@@ -1,11 +1,11 @@
-interface Command {
+interface CommandMini {
   execute(): void;
 }
 
-class LightOffCommand implements Command {
-  light: Light;
+class LightMOffCommandMini implements CommandMini {
+  light: LightM;
 
-  constructor(light: Light) {
+  constructor(light: LightM) {
     this.light = light;
   }
 
@@ -14,10 +14,10 @@ class LightOffCommand implements Command {
   }
 }
 
-class LightOnCommand implements Command {
-  light: Light;
+class LightMOnCommandMini implements CommandMini {
+  light: LightM;
 
-  constructor(light: Light) {
+  constructor(light: LightM) {
     this.light = light;
   }
 
@@ -26,7 +26,7 @@ class LightOnCommand implements Command {
   }
 }
 
-class Light {
+class LightM {
   on() {
     console.log('The light is on');
   }
@@ -37,10 +37,10 @@ class Light {
 }
 
 class SimpleRemoteControl {
-  slot: Command | null = null;
+  slot: CommandMini | null = null;
 
-  setCommand(command: Command): void {
-    this.slot = command;
+  setCommandMini(commandMini: CommandMini): void {
+    this.slot = commandMini;
   }
 
   buttonWasPressed() {
@@ -50,12 +50,12 @@ class SimpleRemoteControl {
 
 class RemoteControlTest {
   simpleRemote: SimpleRemoteControl;
-  light: Light;
+  light: LightM;
   constructor() {
     this.simpleRemote = new SimpleRemoteControl();
-    this.light = new Light();
-    let lightOn = new LightOnCommand(this.light);
-    this.simpleRemote.setCommand(lightOn);
+    this.light = new LightM();
+    let lightOn = new LightMOnCommandMini(this.light);
+    this.simpleRemote.setCommandMini(lightOn);
 
     this.simpleRemote.buttonWasPressed();
   }

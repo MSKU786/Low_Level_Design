@@ -3,6 +3,136 @@ interface Command {
   undo(): void;
 }
 
+class NoCommand implements Command {
+  execute(): void {
+    console.log('No Command');
+  }
+
+  undo(): void {
+    console.log('No Command');
+  }
+}
+
+class Light {
+  type: string;
+
+  constructor(type: string) {
+    this.type = type;
+  }
+
+  on() {
+    console.log('The light is on');
+  }
+
+  off() {
+    console.log('The light is off');
+  }
+}
+
+const CeilingFanState = Object.freeze({
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+  OFF: 0,
+});
+
+class CeilingFan {
+  type: string;
+  state: number;
+
+  constructor(type: string) {
+    this.type = type;
+    this.state = CeilingFanState.OFF;
+  }
+
+  High(): void {
+    this.state = CeilingFanState.HIGH;
+  }
+
+  Medium(): void {
+    this.state = CeilingFanState.MEDIUM;
+  }
+
+  Low(): void {
+    this.state = CeilingFanState.LOW;
+  }
+
+  Off(): void {
+    this.state = CeilingFanState.OFF;
+  }
+}
+
+class CeilingFanMediumCommand implements Command {
+  ceilingFan: CeilingFan;
+  prevSpeed: number;
+
+  constructor(ceilingFan: CeilingFan) {
+    this.ceilingFan = ceilingFan;
+  }
+
+  execute(): void {
+    this.prevSpeed = this.ceilingFan.state;
+    this.ceilingFan.Medium();
+  }
+
+  undo(): void {
+    this.ceilingFan.state = this.prevSpeed;
+  }
+}
+
+class CeilingFanLowCommand implements Command {
+  ceilingFan: CeilingFan;
+  prevSpeed: number;
+
+  constructor(ceilingFan: CeilingFan) {
+    this.ceilingFan = ceilingFan;
+  }
+
+  execute(): void {
+    this.prevSpeed = this.ceilingFan.state;
+    this.ceilingFan.Low();
+  }
+
+  undo(): void {
+    this.ceilingFan.state = this.prevSpeed;
+  }
+}
+
+class CeilingFanHighCommand implements Command {
+  ceilingFan: CeilingFan;
+  prevSpeed: number;
+
+  constructor(ceilingFan: CeilingFan) {
+    this.ceilingFan = ceilingFan;
+  }
+
+  execute(): void {
+    this.prevSpeed = this.ceilingFan.state;
+    this.ceilingFan.High();
+  }
+
+  undo(): void {
+    this.ceilingFan.state = this.prevSpeed;
+  }
+}
+
+class CeilingFanOffCommand implements Command {
+  ceilingFan: CeilingFan;
+  prevSpeed: number;
+
+  constructor(ceilingFan: CeilingFan) {
+    this.ceilingFan = ceilingFan;
+  }
+
+  execute(): void {
+    this.prevSpeed = this.ceilingFan.state;
+    this.ceilingFan.Off();
+  }
+
+  undo(): void {
+    this.ceilingFan.state = this.prevSpeed;
+  }
+}
 class LightOffCommand implements Command {
   light: Light;
 
@@ -32,32 +162,6 @@ class LightOnCommand implements Command {
 
   undo(): void {
     this.light.off();
-  }
-}
-
-class Light {
-  type: string;
-
-  constructor(type: string) {
-    this.type = type;
-  }
-
-  on() {
-    console.log('The light is on');
-  }
-
-  off() {
-    console.log('The light is off');
-  }
-}
-
-class NoCommand implements Command {
-  execute(): void {
-    console.log('No Command');
-  }
-
-  undo(): void {
-    console.log('No Command');
   }
 }
 
@@ -102,7 +206,45 @@ class RemoteControl {
 }
 
 class RemoteLoader {
-  RemoteControl: RemoteControl = new RemoteControl();
+  remoteControl: RemoteControl = new RemoteControl();
   livingRoomLight: Light = new Light('Living Room');
-  kithchenLight: Light = new Light('Kitchen Llight');
+  kitchenLight: Light = new Light('Kitchen Llight');
+  LRceilingFan: CeilingFan = new CeilingFan('Living Room');
+
+  livingRoomLightOn: LightOnCommand = new LightOnCommand(this.livingRoomLight);
+  livingRoomLightOff: LightOffCommand = new LightOffCommand(
+    this.livingRoomLight
+  );
+
+  kitchenLightOn: LightOnCommand = new LightOnCommand(this.kitchenLight);
+  kitchenLightOff: LightOffCommand = new LightOffCommand(this.kitchenLight);
+
+  ceilingFanHigh: CeilingFanHighCommand = new CeilingFanHighCommand(
+    this.LRceilingFan
+  );
+  ceilingFanOff: CeilingFanOffCommand = new CeilingFanOffCommand(
+    this.LRceilingFan
+  );
+  ceilingFanMedium: CeilingFanMediumCommand = new CeilingFanMediumCommand(
+    this.LRceilingFan
+  );
+
+  intialize() {
+    this.remoteControl.setCommand(
+      0,
+      this.livingRoomLightOn,
+      this.livingRoomLightOff
+    );
+    this.remoteControl.setCommand(1, this.kitchenLightOn, this.kitchenLightOff);
+    this.remoteControl.setCommand(2, this.ceilingFanHigh, this.ceilingFanOff);
+    this.remoteControl.setCommand(3, this.ceilingFanMedium, this.ceilingFanOff);
+
+    this.remoteControl.printState();
+
+    this.remoteControl.onButtonWasPushed(0);
+    this.remoteControl.onButtonWasPushed(3);
+    this.remoteControl.onButtonWasPushed(2);
+    this.remoteControl.offButtonWasPushed(2);
+    this.remoteControl.offButtonWasPushed(0);
+  }
 }

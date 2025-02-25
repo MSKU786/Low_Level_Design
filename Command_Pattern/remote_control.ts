@@ -166,12 +166,11 @@ class LightOnCommand implements Command {
 }
 
 class MacroCommand implements Command {
-  commands : Command[];
-  prevCommands : Command[];
+  commands: Command[];
+  prevCommands: Command[];
 
   constructor(commands: Command[]) {
-    for (let com of commands) 
-      this.commands.push(com);
+    for (let com of commands) this.commands.push(com);
   }
 
   execute(): void {
@@ -252,6 +251,20 @@ class RemoteLoader {
     this.LRceilingFan
   );
 
+  partyOn: Command[] = [
+    this.livingRoomLightOn,
+    this.kitchenLightOff,
+    this.ceilingFanOff,
+  ];
+  partyOff: Command[] = [
+    this.livingRoomLightOff,
+    this.kitchenLightOn,
+    this.ceilingFanMedium,
+  ];
+
+  partyOnMacro: MacroCommand = new MacroCommand(this.partyOn);
+  partyOffMacro: MacroCommand = new MacroCommand(this.partyOff);
+
   intialize() {
     this.remoteControl.setCommand(
       0,
@@ -269,5 +282,9 @@ class RemoteLoader {
     this.remoteControl.onButtonWasPushed(2);
     this.remoteControl.offButtonWasPushed(2);
     this.remoteControl.offButtonWasPushed(0);
+
+    this.remoteControl.setCommand(7, this.partyOnMacro, this.partyOffMacro);
+
+    this.remoteControl.onButtonWasPushed(7);
   }
 }

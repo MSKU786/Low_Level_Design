@@ -165,6 +165,29 @@ class LightOnCommand implements Command {
   }
 }
 
+class MacroCommand implements Command {
+  commands : Command[];
+  prevCommands : Command[];
+
+  constructor(commands: Command[]) {
+    for (let com of commands) 
+      this.commands.push(com);
+  }
+
+  execute(): void {
+    for (let com of this.commands) {
+      com.execute();
+      this.prevCommands.push(com);
+    }
+  }
+
+  undo(): void {
+    for (let com of this.prevCommands) {
+      com.execute();
+    }
+  }
+}
+
 class RemoteControl {
   onCommands: Command[];
   offCommands: Command[];
@@ -208,7 +231,7 @@ class RemoteControl {
 class RemoteLoader {
   remoteControl: RemoteControl = new RemoteControl();
   livingRoomLight: Light = new Light('Living Room');
-  kitchenLight: Light = new Light('Kitchen Llight');
+  kitchenLight: Light = new Light('Kitchen Light');
   LRceilingFan: CeilingFan = new CeilingFan('Living Room');
 
   livingRoomLightOn: LightOnCommand = new LightOnCommand(this.livingRoomLight);

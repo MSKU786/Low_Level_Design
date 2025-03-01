@@ -15,6 +15,14 @@ abstract class Duck {
   swim() {
     console.log('All duck swim, even decoys!');
   }
+
+  setFlyBehaviour(fb: FlyBehaviour): void {
+    this.flyBehaviour = fb;
+  }
+
+  setQuackBehaviour(qb: QuackBehaviour): void {
+    this.quackBehavior = qb;
+  }
 }
 
 interface FlyBehaviour {
@@ -33,6 +41,11 @@ class FlyNoWay implements FlyBehaviour {
   }
 }
 
+class FlyRocketPowered implements FlyBehaviour {
+  fly(): void {
+    console.log("I'am flying with a rocket");
+  }
+}
 interface QuackBehaviour {
   quack(): void;
 }
@@ -63,5 +76,17 @@ class MallardDuck extends Duck {
   }
   display(): void {
     console.log('I am real Mailward Duck');
+  }
+}
+
+class ModelDuck extends Duck {
+  constructor() {
+    super();
+    this.quackBehavior = new Quack();
+    this.flyBehaviour = new FlyNoWay();
+  }
+
+  display(): void {
+    console.log("I'am ;a model deuk");
   }
 }

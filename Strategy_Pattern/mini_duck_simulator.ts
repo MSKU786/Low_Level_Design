@@ -90,3 +90,20 @@ class ModelDuck extends Duck {
     console.log("I'am ;a model deuk");
   }
 }
+
+class MiniDuCkSinulator {
+  initalize() {
+    let mallard: Duck = new MallardDuck();
+    mallard.performQuack();
+    mallard.performFly();
+
+    let model: Duck = new ModelDuck();
+    model.performFly();
+
+    model.setFlyBehaviour(new FlyRocketPowered());
+    model.performFly();
+  }
+}
+
+let miniDuckSimulator: MiniDuCkSinulator = new MiniDuCkSinulator();
+miniDuckSimulator.initalize();

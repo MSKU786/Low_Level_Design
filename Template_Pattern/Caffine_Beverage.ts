@@ -1,5 +1,5 @@
 // Template method with Hook
-//
+// Encapsultate interchangeable behaviours and use delegation to decide which behaviour to use.
 abstract class CaffineBeverage {
   prepareRecipe(): void {
     this.boilWater();
@@ -16,6 +16,34 @@ abstract class CaffineBeverage {
 
   cusotomerWantCondiments(): boolean {
     return true;
+  }
+}
+
+class CoffeeWithHook extends CaffineBeverage {
+  brew(): void {
+    console.log('Dripping coffee through filter');
+  }
+
+  addCondiments(): void {
+    console.log('Adding Sugar and Milk');
+  }
+
+  cusotomerWantCondiments(): boolean {
+    return confirm('Do you want milk and sugar?');
+  }
+}
+
+class TeaWithHook extends CaffineBeverage {
+  brew(): void {
+    console.log('Steep tea in boiling water');
+  }
+
+  addCondiments(): void {
+    console.log('Add lemons');
+  }
+
+  cusotomerWantCondiments(): boolean {
+    return confirm('Do you want lemons?');
   }
 }
 
@@ -46,5 +74,11 @@ class BeverageTestDrive {
 
     let tea: Tea = new Tea();
     tea.prepareRecipe();
+
+    let coffeeWithhook: CoffeeWithHook = new CoffeeWithHook();
+    coffeeWithhook.prepareRecipe();
+
+    let teaWithHook: TeaWithHook = new TeaWithHook();
+    teaWithHook.prepareRecipe();
   }
 }

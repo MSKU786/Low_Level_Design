@@ -45,6 +45,7 @@ class LRUCache<K, V> {
       this.map.set(node.key, newNode);
       this.appendNodeInList(newNode);
       this.size++;
+      ``;
     }
   }
 
@@ -70,5 +71,13 @@ class LRUCache<K, V> {
     if (!this.head) this.head = node;
   }
 
-  remove(node: LNode<K, V>) {}
+  remove(node: LNode<K, V>) {
+    const listNode = this.map.get(node.key);
+    if (!listNode) {
+      throw new Error('Key not found');
+    }
+    this.map.delete(node.key);
+    this.removeNodeInList(listNode);
+    this.size--;
+  }
 }

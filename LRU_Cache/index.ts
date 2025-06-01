@@ -1,89 +1,74 @@
 /* Need to creat a LRU Cache */
 
-class LNode<K> {
-  value: K;
-  next: LNode<K> | null;
-  prev: LNode<K> | null;
-  constructor(value: K) {
+class LNode<K, V> {
+  key: K;
+  value: V;
+  next: LNode<K, V> | null;
+  prev: LNode<K, V> | null;
+  constructor(key: K, value: V) {
     this.value = value;
     this.next = null;
     this.prev = null;
   }
 }
 
-class LRUCache<K>{
+class LRUCache<K, V> {
   private size = 0;
-  private currentSize = 0;
-  private head :  LNode<K> | null;
-  private tail :  LNode<K> | null;
-  private map = new Map<K, LNode<K>>()
+  private capacity: number;
+  private head: LNode<K, V> | null;
+  private tail: LNode<K, V> | null;
+  private map = new Map<K, LNode<K, V>>();
 
-  constructor(size: number) {
-    this.size = size;
+  constructor(capacity: number) {
+    this.capacity = capacity;
     this.tail = null;
     this.head = null;
   }
-
 
   getSize() {
     return this.size;
   }
 
-  add( node : LNode<K>) : number {
-    let nodeData = node.value;
-
-    if (this.map.has(nodeData)) {
-        this.removeNodeFromList(nodeData);
-        this.addNodeOnList(nodeData);
+  add(node: LNode<K, V>) {
+    if (this.map.has(node.key)) {
+      let existingNode = this.map.get(node.key);
+      this.removeNodeInList(existingNode);
+      this.appendNodeInList(existingNode);
     } else {
-      this.currentSize++;
-      if (this.head == null) {
-        this.head = new LNode<K>(nodeData);
-        this.tail = this.head;
-      }
-
-      if (this.currentSize > this.size) {
-        this.map.delete(this.head.value);
+      if (this.capacity === this.size && this.head != null) {
+        this.map.delete(this.head?.key);
         this.head = this.head.next;
+        this.size--;
       }
-    }
 
-    return 1;
-  }
-
-  removeNodeFromList(nodeData: K) {
-      let removeNode = this.map.get(nodeData);
-      let prevNode = removeNode?.prev;
-      let nextNode = removeNode?.next;
-
-      prevNode?.next = nextNode;
-      nextNode.prev = prevNode;
-  }
-
-  addNodeOnList(nodeData: K) {
-    let newNode = new LNode<K>(nodeData);
-
-    if (this.tail == null) {
-      this.tail = newNode;
-    } else {
-      this.tail.next = newNode;
-      newNode.prev = this.tail;
-      this.tail = this.tail.next;
+      let newNode = new LNode<K, V>(node.key, node.value);
+      this.map.set(node.key, newNode);
+      this.appendNodeInList(newNode);
+      this.size++;
     }
   }
 
+  private removeNodeInList(node: LNode<K, V>) {
+    let prev = node.prev;
+    let next = node.next;
+    if (prev != null) prev?.next = next;
+    else this.head = next;
 
-  remove(node: LNode<K>) {
+    if (next != null) next?.prev = prev;
+    else this.tail = this.tail?.prev;
 
+    node.prev = null;
+    node.next = null;
   }
 
+  private appendNodeInList(node: LNode<K, V>) {
+    node.prev = this.tail;
+    node.next = null;
 
+    if (this.tail) this.tail.next = node;
+    this.tail = node;
+    if (!this.head) this.head = node;
+  }
 
+  remove(node: LNode<K, V>) {}
 }
-
-
-
-/*
-
-
-1 2 1 4 

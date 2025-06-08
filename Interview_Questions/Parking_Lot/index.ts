@@ -4,6 +4,13 @@ enum VehicleType {
   'TRUCK' = 'truck',
 }
 
+enum TicketStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
+const tickets = new Map<number, Ticket>();
+
 class Vehcile {
   licenesePlateNo: string;
   type: VehicleType;
@@ -15,20 +22,25 @@ class Ticket {
   id: number;
   vehcile: Vehcile;
   duration: number; // in hours;
-  createAt: EpochTimeStamp;
+  createdAt: EpochTimeStamp;
+  slot: ParkingSlot;
+  status: TicketStatus;
 
-  constructor(v: Vehcile, duration: number) {
+  constructor(v: Vehcile, slot: ParkingSlot, duration: number) {
     this.vehcile = v;
     this.duration = duration;
-    this.createAt = Date.now();
+    this.createdAt = Date.now();
+    this.id = Date.now();
+    this.slot = slot;
+    this.status = TicketStatus.ACTIVE;
   }
 }
 
 class ParkingSlot {
   id: string;
-  vehicleType: VehicleType;
+  vehicleType: VehicleType | null;
   occupied: boolean;
-  vehcile: Vehcile;
+  vehcile: Vehcile | null;
 
   constructor(id: string, type: VehicleType) {
     this.id = id;
@@ -41,6 +53,10 @@ class ParkingSlot {
     this.occupied = true;
   }
 
+  releaseSlot() {
+    this.vehcile = null;
+    this.occupied = false;
+  }
   isFree() {
     return this.occupied;
   }
@@ -122,7 +138,8 @@ class TicketService {
       throw new Error('No free slot found');
     }
     slot.bookSlot(vehcile);
-    const ticket = new Ticket(vehcile, duration);
+    const ticket = new Ticket(vehcile, slot, duration);
+    tickets.set(ticket.id, ticket);
     return ticket;
   }
 
@@ -132,5 +149,17 @@ class TicketService {
       if (!floor.isPacked) return false;
     }
     return true;
+  }
+
+  releaseTicket(id: number) {
+    if (tickets.has(id)) {
+      const ticket = tickets.get(id);
+      // @ts-ignore
+      ticket?.status = TicketStatus.INACTIVE;
+      const slot = ticket?.slot;
+      slot?.releaseSlot();
+    }
+
+    throw new Error('Invalid Ticket');
   }
 }

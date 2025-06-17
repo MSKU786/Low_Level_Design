@@ -1,40 +1,40 @@
-class Vehicle {
+class Vehicles {
   drive(): void {
     console.log('This is our normal driving behaviour');
   }
 }
 
-class GoodsVehicle extends Vehicle {}
+class GoodsVehicles extends Vehicles {}
 
-class PassengerVehicle extends Vehicle {}
+class PassengerVehicles extends Vehicles {}
 
-class SportsVehicle extends Vehicle {
+class SportsVehicles extends Vehicles {
   drive(): void {
     console.log('This is out sport driving behaviour');
   }
 }
 
-class OffRoadVehicle extends Vehicle {
+class OffRoadVehicles extends Vehicles {
   // This is the problem we are duplicating the code for the sport driving behaviour
   drive(): void {
     console.log('This is our sport driving behaviour');
   }
 }
 
-class MilitaryVehicle extends Vehicle {}
+class MilitaryVehicles extends Vehicles {}
 
 function main() {
-  const goodsVehicle = new GoodsVehicle();
-  goodsVehicle.drive(); // This is our normal driving behaviour
+  const goodsVehicles = new GoodsVehicles();
+  goodsVehicles.drive(); // This is our normal driving behaviour
 
-  const passengerVehicle = new PassengerVehicle();
-  passengerVehicle.drive(); // This is our normal driving behaviour
+  const passengerVehicles = new PassengerVehicles();
+  passengerVehicles.drive(); // This is our normal driving behaviour
 
-  const sportsVehicle = new SportsVehicle();
-  sportsVehicle.drive(); // This is our sport driving behaviour
+  const sportsVehicles = new SportsVehicles();
+  sportsVehicles.drive(); // This is our sport driving behaviour
 
-  const offRoadVehicle = new OffRoadVehicle();
-  offRoadVehicle.drive(); // This is our sport driving behaviour
+  const offRoadVehicles = new OffRoadVehicles();
+  offRoadVehicles.drive(); // This is our sport driving behaviour
 }
 
 main();

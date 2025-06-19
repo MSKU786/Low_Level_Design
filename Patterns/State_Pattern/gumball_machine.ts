@@ -15,19 +15,56 @@ class GumballMachine {
 
   insertQuarter() {
     if (this.state === GumballMachine.SOLD_OUT) {
-      this.removeQurarter();
       console.log('No balls are available');
     } else if (this.state === GumballMachine.HAS_QUARTER) {
-      console.log('Quarter processed');
-      console.log('Crank Handleee');
+      console.log("You can't insert another quarter");
     } else if (this.state === GumballMachine.NO_QUARTER) {
-      console.log('No Quarter Available');
-    } else {
-      console.log('Gumball is already processed.');
+      console.log('You inserted a quarter');
+      this.state = GumballMachine.HAS_QUARTER;
+    } else if (this.state === GumballMachine.SOLD) {
+      console.log('Wait, We are already giving you a gumball.');
     }
   }
 
-  removeQurarter() {}
+  removeQurater() {
+    if (this.state === GumballMachine.HAS_QUARTER) {
+      this.state = GumballMachine.NO_QUARTER;
+      console.log('Quarter Returned');
+    } else if (this.state === GumballMachine.NO_QUARTER) {
+      console.log("You haven't inserted a quarter");
+    } else if (this.state === GumballMachine.SOLD) {
+      console.log('Sorry you already turned the crank');
+    } else if (this.state === GumballMachine.SOLD_OUT) {
+      console.log("You can't eject, you haven't inserted a quarter");
+    }
+  }
 
-  turnCrank() {}
+  turnCrank() {
+    if (this.state === GumballMachine.SOLD) {
+      console.log('Turning twice doesn’t get you another gumball!');
+    } else if (this.state === GumballMachine.NO_QUARTER) {
+      console.log('You turned but there’s no quarter.');
+    } else if (this.state === GumballMachine.SOLD_OUT) {
+      console.log('You turned, but there are no gumballs.');
+    } else if (this.state === GumballMachine.HAS_QUARTER) {
+      console.log('You turned...');
+      this.state = GumballMachine.SOLD;
+      this.dispense();
+    }
+  }
+
+  dispense() {
+    if (this.state === GumballMachine.SOLD) {
+      this.count--;
+      if (this.count === 0) {
+        console.log('Oops, out of gumballs!');
+        this.state = GumballMachine.SOLD_OUT;
+      } else {
+        this.state = GumballMachine.NO_QUARTER;
+      }
+      console.log('A gumball comes rolling out the slot...');
+    } else {
+      console.log('No gumball dispensed.');
+    }
+  }
 }

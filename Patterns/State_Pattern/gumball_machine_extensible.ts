@@ -7,12 +7,68 @@ interface State {
 }
 
 class GumballMachineE {
-  static SOLD_OUT: State;
-  static HAS_QUARTER: State;
-  static NO_QUARTER: State;
-  static SOLD: State;
+  SOLD_OUT: State;
+  HAS_QUARTER: State;
+  NO_QUARTER: State;
+  SOLD: State;
 
   currentState: State;
+  count: number;
+
+  constructor(numberOfBall: number) {
+    this.SOLD_OUT = new SoldOutState(this);
+    this.HAS_QUARTER = new HasQuarterState(this);
+    this.NO_QUARTER = new NoQuarterState(this);
+    this.SOLD = new SoldState(this);
+
+    this.count = numberOfBall;
+    if (numberOfBall > 0) {
+      this.currentState = this.NO_QUARTER;
+    }
+  }
+
+  insertQuarter(): void {
+    this.currentState.insertQuarter();
+  }
+
+  removeQuarter(): void {
+    this.currentState.removeQuarter();
+  }
+
+  turnCrank(): void {
+    this.currentState.turnCrank();
+    this.currentState.dispense();
+  }
+  setState(state: State) {
+    this.currentState = state;
+  }
+
+  releaseBall() {
+    if (this.count > 0) {
+      console.log('One ball released....');
+      this.count--;
+    }
+  }
+
+  getNoQuarterState() {
+    return this.NO_QUARTER;
+  }
+
+  getHasNoQuarterState() {
+    return this.HAS_QUARTER;
+  }
+
+  getSoldState() {
+    return this.SOLD;
+  }
+
+  getSoldOutState() {
+    return this.SOLD_OUT;
+  }
+
+  getState() {
+    return this.currentState;
+  }
 }
 
 class SoldOutState implements State {
@@ -35,10 +91,12 @@ class SoldOutState implements State {
     console.log('You turned, but there are no gumballs.');
   }
 
-  dispense() {}
+  dispense() {
+    console.log('No balls are available');
+  }
 }
 
-class NoQuarterSTate implements State {
+class NoQuarterState implements State {
   gumballMachine;
 
   constructor(machine: GumballMachineE) {
@@ -46,7 +104,8 @@ class NoQuarterSTate implements State {
   }
 
   insertQuarter() {
-    console.log('No balls are available');
+    console.log('You inserted a quarter');
+    this.gumballMachine.setState(this.gumballMachine.getHasQuarterState());
   }
 
   removeQuarter() {
@@ -58,7 +117,9 @@ class NoQuarterSTate implements State {
     console.log('You turned but there’s no quarter.');
   }
 
-  dispense() {}
+  dispense() {
+    console.log('You need to pay first');
+  }
 }
 
 class HasQuarterState implements State {

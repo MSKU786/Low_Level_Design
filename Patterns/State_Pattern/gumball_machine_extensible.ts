@@ -11,6 +11,7 @@ class GumballMachineE {
   HAS_QUARTER: State;
   NO_QUARTER: State;
   SOLD: State;
+  WINNER: State;
 
   currentState: State;
   count: number;
@@ -20,7 +21,7 @@ class GumballMachineE {
     this.HAS_QUARTER = new HasQuarterState(this);
     this.NO_QUARTER = new NoQuarterState(this);
     this.SOLD = new SoldState(this);
-
+    this.WINNER = new WinnerState(this);
     this.count = numberOfBall;
     if (numberOfBall > 0) {
       this.currentState = this.NO_QUARTER;
@@ -66,6 +67,10 @@ class GumballMachineE {
     return this.SOLD_OUT;
   }
 
+  getWinnerState() {
+    return this.WINNER;
+  }
+
   getState() {
     return this.currentState;
   }
@@ -80,11 +85,13 @@ class SoldOutState implements State {
 
   insertQuarter() {
     console.log('No balls are available');
+    this.gumballMachine.removeQuarter();
   }
 
   removeQuarter() {
     // this.state = GumballMachine.NO_QUARTER;
     console.log('Quarter Returned');
+    this.gumballMachine.setState(this.gumballMachine.getSoldOutState);
   }
 
   turnCrank() {
@@ -136,14 +143,22 @@ class HasQuarterState implements State {
   removeQuarter() {
     // this.state = GumballMachine.NO_QUARTER;
     console.log('Quarter Returned');
+    const random = Math.floor(Math.random() * 10) + 1;
+    if (random===1) {
+      this.gumballMachine.setState(this.gumballMachine.getWinnerState());
+    } else 
+      this.gumballMachine.setState(this.gumballMachine.getNoQuarterState());
   }
 
   turnCrank() {
     console.log('You turned ........');
-    this.gumballMachine.setState();
+    //Randomly generate a number with probalblity of 10%
+    this.gumballMachine.setState(this.gumballMachine.getSoldState());
   }
 
-  dispense() {}
+  dispense() {
+    console.log('No Gumball dispensed');
+  }
 }
 
 class SoldState implements State {
@@ -166,5 +181,46 @@ class SoldState implements State {
     console.log('Turning twice doesn’t get you another gumball!');
   }
 
-  dispense() {}
+  dispense() {
+    this.gumballMachine.releaseBall();
+    if (this.gumballMachine.count > 0) {
+      this.gumballMachine.setState(this.gumballMachine.getNoQuarterState());
+    } else {
+      this.gumballMachine.setState(this.gumballMachine.getSoldOutState());
+    }
+  }
+}
+
+class WinnerState implements State {
+  gumballMachine;
+
+  constructor(machine: GumballMachineE) {
+    this.gumballMachine = machine;
+  }
+
+  insertQuarter() {
+    console.log('Wait, We are already giving you a gumball.');
+  }
+
+  removeQuarter() {
+    // this.state = GumballMachine.NO_QUARTER;
+    console.log('Sorry you already turned the crank');
+  }
+
+  turnCrank() {
+    console.log('Turning twice doesn’t get you another gumball!');
+  }
+
+  dispense() {
+    this.gumballMachine.releaseBall();
+    if (this.gumballMachine.count > 0) {
+      this.gumballMachine.releaseBall();
+      if (this.gumballMachine.count === 0) {
+        this.gumballMachine.setState(this.gumballMachine.getSoldOutState());
+      } else
+        this.gumballMachine.setState(this.gumballMachine.getNoQuarterState());
+    } else {
+      this.gumballMachine.setState(this.gumballMachine.getSoldOutState());
+    }
+  }
 }

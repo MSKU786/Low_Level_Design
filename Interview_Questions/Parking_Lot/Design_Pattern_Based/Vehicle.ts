@@ -1,6 +1,11 @@
 export class Vehicle {
-  VehicleNo: string;
+  vehicleNo: string;
   type: VehicleType;
+
+  constructor(vehicleNo, type) {
+    this.vehicleNo = vehicleNo;
+    this.type = type;
+  }
 }
 
 export enum VehicleType {

@@ -6,9 +6,13 @@ export class Vehicle {
     this.vehicleNo = vehicleNo;
     this.type = type;
   }
+
+  getVehicleType(): VehicleType {
+    return this.type;
+  }
 }
 
 export enum VehicleType {
-  '2-Wheeler',
-  '4-Wheeler',
+  TWO_WHEELER = '2-Wheeler',
+  FOUR_WHEELER = '4-Wheeler',
 }

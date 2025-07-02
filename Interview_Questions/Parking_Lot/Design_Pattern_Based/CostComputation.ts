@@ -1,15 +1,28 @@
-export abstract class CostComputation {
-  abstract computeCost(ticket: Ticket): number;
+import {
+  HourlyPricingStrategy,
+  MinutePricingStrategy,
+  PricingStrategy,
+} from './PricingStrategy';
+import { Ticket } from './Ticket';
+
+// Cost Computation
+export class CostComputation {
+  constructor(private pricingStrategy: PricingStrategy) {}
+
+  calculateCost(ticket: Ticket): number {
+    return this.pricingStrategy.calculatePrice(ticket);
+  }
 }
 
+// Vehicle-specific Cost Computations
 export class TwoWheelerCostComputation extends CostComputation {
-  computeCost(ticket: Ticket): number {
-    return 10;
+  constructor() {
+    super(new HourlyPricingStrategy());
   }
 }
 
 export class FourWheelerCostComputation extends CostComputation {
-  computeCost(ticket: Ticket): number {
-    return 20;
+  constructor() {
+    super(new MinutePricingStrategy());
   }
 }

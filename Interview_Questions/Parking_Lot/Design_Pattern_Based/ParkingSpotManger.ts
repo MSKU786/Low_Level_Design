@@ -10,9 +10,7 @@ export abstract class ParkingSpotManager {
 
   abstract findParkingSpot(): ParkingSpot | null;
 
-  parkVehicle(v: Vehicle): void {
-    //
-    let spot = this.findParkingSpot();
+  parkVehicle(v: Vehicle, spot: ParkingSpot): void {
     if (spot) {
       spot.parkVehicle(v);
     } else;

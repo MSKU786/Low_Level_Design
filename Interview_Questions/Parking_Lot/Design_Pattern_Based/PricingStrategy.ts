@@ -20,7 +20,7 @@ export class HourlyPricingStrategy extends PricingStrategy {
 }
 
 export class MinutePricingStrategy extends PricingStrategy {
-  price(ticket: Ticket) {
+  calculatePrice(ticket: Ticket) {
     const currentTime = new Date();
     const durationMinutes =
       (currentTime.getTime() - ticket.entryTime.getTime()) / (1000 * 60);

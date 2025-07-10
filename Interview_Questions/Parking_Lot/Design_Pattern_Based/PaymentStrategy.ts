@@ -19,3 +19,9 @@ export class CardPaymentStrategy extends PaymentStrategy {
     console.log('Add entry in card system');
   }
 }
+
+export class UPIPaymentStrategy extends PaymentStrategy {
+  makePayment(amount: number) {
+    console.log('Add entry in upi system');
+  }
+}

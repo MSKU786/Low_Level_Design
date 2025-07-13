@@ -13,8 +13,9 @@ export abstract class ParkingSpotManager {
   parkVehicle(v: Vehicle, spot: ParkingSpot): void {
     if (spot) {
       spot.parkVehicle(v);
-    } else;
-    throw new Error('No parking spot available');
+    } else {
+      throw new Error('No parking spot available');
+    }
   }
 
   removeVehicle(v: Vehicle): void {

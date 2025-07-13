@@ -8,6 +8,8 @@ export class ParkingSpot {
   constructor(id: string, price: number) {
     this.id = id;
     this.price = price;
+    this.isEmpty = true;
+    this.vehcile = null;
   }
 
   parkVehicle(v: Vehicle) {
@@ -18,5 +20,13 @@ export class ParkingSpot {
   removeVehicle() {
     this.vehcile = null;
     this.isEmpty = true;
+  }
+
+  isAvailable(): boolean {
+    return this.isEmpty;
+  }
+
+  getVehicle(): Vehicle | null {
+    return this.vehcile;
   }
 }

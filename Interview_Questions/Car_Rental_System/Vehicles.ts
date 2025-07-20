@@ -8,6 +8,7 @@ export class Vechicles {
   companyName: string;
   modelName: string;
   noOfSeat: number;
+  status: Status;
 }
 
 export enum VehicleTYpe {

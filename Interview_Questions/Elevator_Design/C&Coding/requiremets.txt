@@ -1,0 +1,12 @@
+Requirements:
+N number of elevator should be supported
+Lift Dispatch Algo (Minimum seek time)
+
+Objets:
+Building
+Floor
+Elevator Car
+External Button -> (Display, CurrentFloor, Status, Direction)
+Internal Button 
+
+

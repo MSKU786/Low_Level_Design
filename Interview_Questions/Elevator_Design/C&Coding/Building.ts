@@ -1,6 +1,7 @@
 import { Floor } from './Floor';
 import { ElevatorController } from './ElevatorController';
 import { ExternalButtonDispatcher } from './External_Button';
+import { InternalButton, InternalButtonDispatcher } from './Internal_Button';
 
 export class Building {
   id: string;
@@ -9,6 +10,7 @@ export class Building {
   floors: Floor[];
   private elevatorController: ElevatorController;
   private externalButtonDispatcher: ExternalButtonDispatcher;
+  private internalButtonDispatcher: InternalButtonDispatcher;
 
   constructor(
     id: string,
@@ -26,11 +28,28 @@ export class Building {
     this.externalButtonDispatcher = new ExternalButtonDispatcher(
       this.elevatorController
     );
+    this.internalButtonDispatcher =
+      this.elevatorController.getInternalButtonDispatcher();
 
     // Initialize floors
     this.floors = [];
     for (let i = 1; i <= floorCount; i++) {
       this.floors.push(new Floor(i, this.externalButtonDispatcher));
+    }
+
+    // Set up internal buttons for all elevators
+    this.setupInternalButtons();
+  }
+
+  // Set up internal buttons for all elevators
+  private setupInternalButtons(): void {
+    const elevators = this.elevatorController.getElevators();
+    for (const elevator of elevators) {
+      const internalButton = new InternalButton(
+        elevator.getId(),
+        this.internalButtonDispatcher
+      );
+      elevator.setInternalButton(internalButton);
     }
   }
 
@@ -42,6 +61,11 @@ export class Building {
   // Get external button dispatcher
   getExternalButtonDispatcher(): ExternalButtonDispatcher {
     return this.externalButtonDispatcher;
+  }
+
+  // Get internal button dispatcher
+  getInternalButtonDispatcher(): InternalButtonDispatcher {
+    return this.internalButtonDispatcher;
   }
 
   // Get all floors

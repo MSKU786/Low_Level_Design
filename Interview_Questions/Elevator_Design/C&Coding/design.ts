@@ -1,11 +1,9 @@
 import { Building } from './Building';
 import { Direction } from './enum';
-import { InternalButtonDispatcher } from './Internal_Button';
 
 // TASK Algorithm Demo
 class ElevatorSystemDemo {
   private building: Building;
-  private internalButtonDispatcher: InternalButtonDispatcher;
 
   constructor() {
     // Create a building with 10 floors and 4 elevators
@@ -15,9 +13,6 @@ class ElevatorSystemDemo {
       '123 Innovation St',
       10,
       4
-    );
-    this.internalButtonDispatcher = new InternalButtonDispatcher(
-      this.building.getElevatorController()
     );
   }
 
@@ -85,7 +80,9 @@ class ElevatorSystemDemo {
   // Simulate internal button press
   private simulateInternalRequest(elevatorId: number, floor: number): void {
     console.log(`🔘 Internal Request: Elevator ${elevatorId}, Floor ${floor}`);
-    this.internalButtonDispatcher.submitRequest(elevatorId, floor);
+    this.building
+      .getInternalButtonDispatcher()
+      .submitRequest(elevatorId, floor);
   }
 
   // Process all requests using TASK algorithm
@@ -162,6 +159,15 @@ class TASKAlgorithmExplanation {
     console.log('✅ Handles both external and internal requests');
     console.log('✅ Supports multiple elevators with intelligent dispatching');
     console.log('✅ Minimizes wait time and travel distance');
+    console.log('');
+    console.log('Architecture:');
+    console.log(
+      '🎯 Elevator: Dumb object with only properties and basic getters/setters'
+    );
+    console.log(
+      '🎯 ElevatorController: Contains all TASK algorithm logic and business rules'
+    );
+    console.log('🎯 Building: Orchestrates the entire system');
   }
 }
 

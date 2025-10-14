@@ -123,7 +123,7 @@ class Player {
 
 class TicTacToe {
   private board: Board;
-  private players: [Player, Player];
+  private players: Player[];
   private currentPlayerIndex: number;
 
   constructor(size: number, player1Name: string, player2Name: string) {

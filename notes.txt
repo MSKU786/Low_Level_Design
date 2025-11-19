@@ -1,0 +1,77 @@
+/*
+
+Requiremnts 
+
+plug & play  model 
+extensible : sms, email, popup
+notifcation dynamcally 
+*/
+
+
+
+class NotificationService {
+  sendNotification(Notication a) {
+
+  }
+}
+
+abstract class Notication {
+  getContent()
+}
+
+
+class SimpleNotication extends Notification {
+  getContent()
+}
+
+
+abstract class Observable {
+  list <> observer;
+  addOverserver()
+  removeObserver()
+  notifyObservers()
+}
+
+
+class NotificatioObservable {
+  INotification n 
+  addObserver()
+
+  removeObserver()
+
+  notifyObservers()
+
+  getNotfication()
+
+  setNotification() {
+    notifyObservers()
+  }
+}
+
+abstract class observer{
+  update(): void
+}
+
+
+class NOtificationEngine {
+  update() {
+
+  }
+
+  list<NotficatoinStrategy> differntStrategy;
+}
+
+
+abstract NotficatoinStrategy {
+  sendNotification(String content)
+}
+
+
+class EmailStrategy extends NotficatoinStrategy {
+  sendNotification()
+}
+
+class SmsStrategcy extends NotficatoinStrategy {
+  sendNotification()
+} 
+

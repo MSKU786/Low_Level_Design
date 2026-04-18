@@ -1,5 +1,6 @@
 // Each class has exactly one reason to change
 
+// Reason to change: Validation rate changes
 class OrderValidator {
   validate(items: CartItem[]) {
     if (items.length == 0) throw new Error('Cart is empty');
@@ -7,6 +8,7 @@ class OrderValidator {
   }
 }
 
+// Reason to change : Tax rule or rate changes or add new tax item
 class TaxCalculator {
   private rates: Record<string, number> = {
     electronics: 0.18,
@@ -22,6 +24,7 @@ class TaxCalculator {
   }
 }
 
+// Reason to change: DB schema or ORM Changes
 class OrderRepository {
   async save(userId: string, total: number, tax: number): Promise<Order> {
     return await db.query(
@@ -32,6 +35,7 @@ class OrderRepository {
   }
 }
 
+// Reason to change: Notification channel or template
 class OrderNotifier {
   async sendNotification(email: string, order: Order): Promise<void> {
     await sendgrid.send({
@@ -42,6 +46,7 @@ class OrderNotifier {
   }
 }
 
+// Orchestrator -> coordinates and don't implement the logic
 class OrderService {
   constructor(
     private validator: OrderValidator,
@@ -50,5 +55,14 @@ class OrderService {
     private notifier: OrderNotifier,
   ) {}
 
-  async;
+  async createOrder(userId: string, items: CartItem[]) {
+    this.validator.validate(items);
+    const tax = this.tax.calculateTax(items);
+    const total = /*sum item*/ +tax;
+    const order = await this.dbRepo.save(userId, total, tax);
+
+    await this.notifier.sendNotification(user.email, order);
+
+    return order;
+  }
 }

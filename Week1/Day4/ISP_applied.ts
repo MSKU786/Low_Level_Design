@@ -1,16 +1,26 @@
-// Split by capablity - 
 
-interface Machine {
+interface Printable {
   print(doc: Document): void;
+}
+
+interface Scanable {
   scan(doc: Document): void;
+}
+
+interface Faxable {
   fax(doc: Document): void;
+}
+
+interface Stapleable {
   staple(doc: Document): void;
+}
+
+interface Collatable {
   collate(docs: Document[]): void;
 }
 
 
-// Premium Printer: 
-class OfficePro implements Machine {
+class OfficePro implements Printable, Scanable, Faxable, Stapleable, Collatable {
   print(doc: Document): void {
     console.log('Printing document');
   }
@@ -29,26 +39,16 @@ class OfficePro implements Machine {
 }
 
 
-class HomePrinter implements Machine {
+class HomePrinter implements Printable, Scanable {
   print(doc: Document): void {
     console.log('Printing document');
   }
   scan(doc: Document): void {
     console.log('Scanning document');
   }
-  fax(doc: Document): void {
-    throw new Error('Faxing not supported');
-  }
-  staple(doc: Document): void {
-   throw new Error('Stapling not supported');
-  }
-
-  collate(docs: Document[]): void {
-    throw new Error('Collating not supported');
-  }
 }
 
-
-function sendFax(machine: Machine, doc: Document): void {
+// ISP Applied: Will never call fax() on a HomePrinter, so it's not forced to implement it.
+function sendFax(machine: Faxable, doc: Document): void { 
   machine.fax(doc);
 }

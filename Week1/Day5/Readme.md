@@ -1,4 +1,4 @@
-CORE IDEA: High-level modules should not depend on low-level modules. Both should depend on abstractions. The direction of dependency get inverted -- instead of our business logic depending on infrastructure, infrastructure should depends on interfaces that business logic defines. 
+CORE IDEA: (Dependency Inversion Principle) High-level modules should not depend on low-level modules. Both should depend on abstractions. The direction of dependency get inverted -- instead of our business logic depending on infrastructure, infrastructure should depends on interfaces that business logic defines. 
 
 Rule A: High level modules should not depend on or import from low level moduels. Both should depend on abstractions(interface)
 

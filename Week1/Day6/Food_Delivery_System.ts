@@ -1,4 +1,12 @@
-
+enum OrderStatus {
+  PLACED,
+  CONFIRMED,
+  PREPARING,
+  OUT_FOR_DELIVERY,
+  DELIVERED,
+  CANCELLED,
+  FAILED
+}
 
 class OrderValiator {
   validateOrder(restrauntId, items) {
@@ -81,24 +89,57 @@ class FreeDelivery implements DiscountStrategcy {
 
 
 interface PaymentStrategy {
-  processPayment(): Promise<void>;
+  processPayment(amount): Promise<PaymentResult>;
 }
 
 
+type PaymentResult = {
+  status: "SUCCESS" | "FAILED" | "RETRY";
+};
+
 class UPIPaymentStrategy implements PaymentStrategy {
-  processPayment(): Promise<string> {
+  processPayment(amount): Promise<string> {
     return;
   }
 }
 
 class CCPaymentStrategy implements PaymentStrategy {
-  processPayment(): Promise<void> {
+  processPayment(amount): Promise<void> {
     return;
   }
 }
 
 class CODPaymentStrategy implements PaymentStrategy {
-  processPayment(): Promise<void> {
+  processPayment(amount): Promise<void> {
     return;
+  }
+}
+
+
+
+interface Notifier {
+  sendNotification( message: string): void;
+}
+
+
+class CustomerNotifier implements Notifier {
+
+  constructor(private userId: string, private toNumber: string ) {
+
+  }
+
+  sendNotification(message: string): void {
+    
+  }
+}
+
+
+class RestaruantNotifier implements Notifier {
+  constructor(private email: string, private dashboardId: string) {
+
+  }
+
+  sendNotification(message: string): void {
+    
   }
 }

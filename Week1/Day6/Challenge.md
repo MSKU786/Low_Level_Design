@@ -75,7 +75,6 @@ Other possibilities:
 
 State transitions must be validated:
 - You **cannot** go from "delivered" back to "preparing"
-
 ---
 
 ## Where Each SOLID Principle Must Appear

@@ -8,15 +8,50 @@ enum OrderStatus {
   FAILED
 }
 
-class OrderValiator {
+class Order {
+  private status: OrderStatus;
+
+  constructor() {
+    this.status = OrderStatus.PLACED;
+  }
+
+  getStatus() {
+    return this.status;
+  }
+
+  private transitionTo(next: OrderStatus) {
+    // validate using allowed transitions
+  }
+
+  markConfirmed() {
+    this.transitionTo(OrderStatus.CONFIRMED);
+  }
+
+  markPreparing() {
+    this.transitionTo(OrderStatus.PREPARING);
+  }
+
+  // add others similarly
+}
+
+class OrderValidator {
   validateOrder(restrauntId, items) {
     
   }
 }
 
 
-class PriceCalculator{
+class PriceCalculator {
+    constructor(private deliveryType: DeliveryStrategy, private discountType: DiscountStrategy) {
 
+    }
+
+    calulateTotalCost(order: Order) {
+      let amount = order.amount;
+      amount += this.deliveryType.calculateShippingCost()
+      amount += this.discountType.calculateDiscount()
+      return amount;
+    }
 }
 
 
@@ -26,17 +61,6 @@ class PaymentProcessor{
 
 class OrderRepository {
 
-}
-
-
-class OrderService {
-  constructor(private validator: OrderValiator, private priceManager: PriceCalculator, private orderDB: OrderRepository, private paymentProcessor: PaymentProcessor) {}
-
-  async createOrder(userId: string, restrauntId: string, items: CartItem[]) {
-    this.validator.validateOrder(restrauntId, items);
-    const totalAmount = this.priceManager.calculate(items);
-
-  }
 }
 
 
@@ -64,23 +88,23 @@ class ScheduledDeliveryStrategy implements DeliveryStrategy {
 }
 
 
-interface DiscountStrategcy {
+interface DiscountStrategy {
   calculateDiscount(): number;
 }
 
-class PercentageDiscount implements DiscountStrategcy {
+class PercentageDiscount implements DiscountStrategy {
   calculateDiscount(): number {
     return 0;
   }
 }
 
-class FlatAmountDiscount implements DiscountStrategcy {
+class FlatAmountDiscount implements DiscountStrategy {
   calculateDiscount(): number {
     return 0;
   }
 }
 
-class FreeDelivery implements DiscountStrategcy {
+class FreeDelivery implements DiscountStrategy {
   calculateDiscount(): number {
     return 0;
   }
@@ -98,19 +122,19 @@ type PaymentResult = {
 };
 
 class UPIPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<string> {
+  processPayment(amount): Promise<PaymentResult> {
     return;
   }
 }
 
 class CCPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<void> {
+  processPayment(amount): Promise<PaymentResult> {
     return;
   }
 }
 
 class CODPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<void> {
+  processPayment(amount): Promise<PaymentResult> {
     return;
   }
 }
@@ -141,5 +165,31 @@ class RestaruantNotifier implements Notifier {
 
   sendNotification(message: string): void {
     
+  }
+}
+
+
+class OrderService {
+  constructor(
+    private validator: OrderValidator,
+    private pricing: PriceCalculator,
+    private payment: PaymentStrategy,
+    private repo: OrderRepository
+  ) {}
+
+  async createOrder(order: Order) {
+    order.markPreparing();
+    this.validator.validate(order.restaurantId, order.items);
+
+    const price = this.pricing.calulateTotalCost(order);
+
+    const paymentResult = await this.payment.processPayment(price.total);
+
+    if (paymentResult.status !== "SUCCESS") {
+      throw new Error("Payment failed");
+    }
+
+    order.markConfirmed();
+    await this.repo.save(order);
   }
 }

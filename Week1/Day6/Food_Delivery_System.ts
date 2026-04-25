@@ -1,3 +1,9 @@
+
+// =============================================
+// TYPES & ENUMS
+// =============================================
+
+
 enum OrderStatus {
   PLACED,
   CONFIRMED,
@@ -8,11 +14,61 @@ enum OrderStatus {
   FAILED
 }
 
-class Order {
-  private status: OrderStatus;
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  available: number;
+}
 
-  constructor() {
+interface OrderItem {
+  menuItem: MenuItem;
+  quantity: number;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+
+// =============================================
+// Order Entity with state machine
+// =============================================
+
+const VALID_TRANSACTIONS: Record<OrderStatus, OrderStatus[]>: {
+  [OrderStatus.PLACED]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED, OrderStatus.failed].
+  [OrderStatus.PREPARING]: [OrderStatus.OUT_FOR_DELIVERY]
+}
+
+class Order {
+  public readonly id: string;
+  public readonly customerId: string;
+  public readonly restaurantId: string;
+  public readonly items: OrderItem[];
+  public readonly pricing: PricingBreakdown;
+  public readonly paymentId? : string;
+  private status: OrderStatus;
+  public readonly createdAt: Date;
+
+  constructor(params: {
+    id: string;
+    customerId: string;
+    restaurantId: string;
+    items: OrderItem[];
+    pricing: PricingBreakdown;
+    paymentId?: string;
+  }) {
+    this.id = params.id;
+    this.customerId = params.customerId;
+    this.restaurantId= params.restaurantId;
+    this.items=params.items;
+    this.pricing= params.pricing;
+    this.paymentId = params.paymentId;
     this.status = OrderStatus.PLACED;
+    this.createdAt = new Date();  
   }
 
   getStatus() {
@@ -31,8 +87,24 @@ class Order {
     this.transitionTo(OrderStatus.PREPARING);
   }
 
+  cancel(): void {
+    if (this.status === OrderStatus.PREPARING ||
+      this.status === OrderStatus.OUT_FOR_DELIVERY ||
+      this.status === OrderStatus.DELIVERED
+    ) {
+      throw new Error (
+        'Cannot cancel order '
+      )
+    }
+
+    this.transitionTo(OrderStatus.CANCELLED);
+  }
+
   // add others similarly
 }
+
+
+
 
 class OrderValidator {
   validateOrder(restrauntId, items) {

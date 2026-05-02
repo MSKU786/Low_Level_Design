@@ -104,80 +104,77 @@ class Order {
 }
 
 
+class Restaruant {
+  constructor(public readonly id: string, public readonly name: string) {}
 
+  isOpen(): boolean {
+    return true;
+  }
 
-class OrderValidator {
-  validateOrder(restrauntId, items) {
-    
+  getMenu(): MenuItem[] {
+    return [];
   }
 }
 
-
-class PriceCalculator {
-    constructor(private deliveryType: DeliveryStrategy, private discountType: DiscountStrategy) {
-
-    }
-
-    calulateTotalCost(order: Order) {
-      let amount = order.amount;
-      amount += this.deliveryType.calculateShippingCost()
-      amount += this.discountType.calculateDiscount()
-      return amount;
-    }
-}
-
-
-class PaymentProcessor{
-
-}
-
-class OrderRepository {
-
-}
-
+// ===================================================
+// STRATEGY INTERFACES
+// ===================================================
 
 interface DeliveryStrategy {
-  calculateShippingCost(): number;
+  calculateShippingCost(distance: number): number;
 }
 
 
 class StardardDeliveryStrategy implements DeliveryStrategy {
-  calculateShippingCost(): number {
+  constructor(private flatFee: number = 40) {}
+
+  calculateShippingCost(_distance: number): number {
     return 0;
   }
 }
 
 class ExpressDeliveryStrategy implements DeliveryStrategy {
-  calculateShippingCost(): number {
+
+  constructor(private baseFee: number = 60, private perKmFee: number = 10) {}
+  calculateShippingCost(_distance: number): number {
     return 0;
   }
 }
 
 class ScheduledDeliveryStrategy implements DeliveryStrategy {
+ 
+  constructor(private slotFee: number = 20) {}
   calculateShippingCost(): number {
-    return 0
+    return this.slotFee;
   }
 }
 
 
 interface DiscountStrategy {
-  calculateDiscount(): number;
+  calculateDiscount(items: OrderItem[], subtotal: number): number;
 }
 
 class PercentageDiscount implements DiscountStrategy {
-  calculateDiscount(): number {
+
+  constructor(private percent: number) {}
+
+  calculateDiscount(items: OrderItem[], subtotal: number): number {
     return 0;
   }
 }
 
 class FlatAmountDiscount implements DiscountStrategy {
-  calculateDiscount(): number {
+  constructor(private amount: number) {}
+  calculateDiscount(items: OrderItem[], subtotal: number): number {
     return 0;
   }
 }
 
-class FreeDelivery implements DiscountStrategy {
-  calculateDiscount(): number {
+class FreeDeliveryDiscount implements DiscountStrategy {
+
+  constructor(public readonly freeDelivery: boolean = true) {}
+
+  calculateDiscount(items: OrderItem[], subtotal: number): number {
     return 0;
   }
 }
@@ -194,53 +191,109 @@ type PaymentResult = {
 };
 
 class UPIPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<PaymentResult> {
-    return;
+  constructor(private vpa: string) {}
+
+  async pay(amount: number): Promise<PaymentResult> {
+    if (!this.vpa.includes("@")) {
+      return {
+        success: false, 
+        error: "Invalid UPI format"
+      }
+    }
+
+    const txnId = `upi_${Date.now()}`
+    return {success: true, transactionId: txnId}
   }
 }
 
 class CCPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<PaymentResult> {
-    return;
+  constructor(private cardNumber: string, private cvv: string, private expiry: string) {}
+
+  async pay(amount: number): Promise<PaymentResult> {
+    if (this.cvv.length != 3) {
+      return {
+        success: false, 
+        error: "Invalid CVV"
+      }
+    }
+
+    const txnId = `upi_${Date.now()}`
+    return {success: true, transactionId: txnId}
   }
 }
 
 class CODPaymentStrategy implements PaymentStrategy {
-  processPayment(amount): Promise<PaymentResult> {
-    return;
+  constructor(private vpa: string) {}
+
+  async pay(amount: number): Promise<PaymentResult> {
+    if (!this.vpa.includes("@")) {
+      return {
+        success: false, 
+        error: "Invalid UPI format"
+      }
+    }
+
+    const txnId = `upi_${Date.now()}`
+    return {success: true, transactionId: txnId}
   }
+}
+
+// DOMAIN Interfaces
+
+interface OrderValidator {
+  validate(
+    items: OrderItem[],
+    restrauntId: Restaruant
+  ): ValidationResult;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+
+// Pricing
+
+interface PricingStrategy {
+  calulateTotalCost(items: OrderItem[], deliveryType: DeliveryStrategy, discountType: DiscountStrategy | null): number;
+}
+
+interface PaymentProcessor {
+  processPayment(amount: number, strategy: PaymentStrategy): Promise<PaymentResult>;
+}
+
+
+// Persistence
+
+interface OrderRepository {
+  save(order: Order): Promise<Order>;
+  findById(id: string): Promise<Order>;
+  updateStatus(id: string, status: OrderStatus): Promise<Order>;
 }
 
 
 
-interface Notifier {
-  sendNotification( message: string): void;
+// -- Notifications (ISP: seprate per recipient type)
+// Each interface represnet a Role not a channel
+// the implemntaiton decide which channel to use
+
+interface CustomerNotifier {
+  orderPlaced(customer: Customer, order: Order): Proimise<void>;
+  orderStatusChanged(customer: Customer, order: Order): Proimise<void>;
+}
+
+interface RestaruantNotifier {
+  newOrder(restaruant: Restaruant, order: Order): Proimise<void>;
 }
 
 
-class CustomerNotifier implements Notifier {
-
-  constructor(private userId: string, private toNumber: string ) {
-
-  }
-
-  sendNotification(message: string): void {
-    
-  }
+interface DriverNotifer {
+  deliveryAssigned(driver: Driver, order: Order): Proimise<void>;
 }
 
 
-class RestaruantNotifier implements Notifier {
-  constructor(private email: string, private dashboardId: string) {
-
-  }
-
-  sendNotification(message: string): void {
-    
-  }
-}
-
-
+// Implemenations
 class OrderService {
   constructor(
     private validator: OrderValidator,

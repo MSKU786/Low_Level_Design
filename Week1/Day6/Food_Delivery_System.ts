@@ -1,17 +1,15 @@
-
 // =============================================
 // TYPES & ENUMS
 // =============================================
 
-
 enum OrderStatus {
-  PLACED,
-  CONFIRMED,
-  PREPARING,
-  OUT_FOR_DELIVERY,
-  DELIVERED,
-  CANCELLED,
-  FAILED
+  PLACED = "PLACED",
+  CONFIRMED = "CONFIRMED",
+  PREPARING = "PREPARING",
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  FAILED = "FAILED",
 }
 
 interface MenuItem {
@@ -33,50 +31,50 @@ interface Customer {
   phone: string;
 }
 
-
-// =============================================
-// Order Entity with state machine
-// =============================================
-
-const VALID_TRANSACTIONS: Record<OrderStatus, OrderStatus[]>: {
-  [OrderStatus.PLACED]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED, OrderStatus.failed].
-  [OrderStatus.PREPARING]: [OrderStatus.OUT_FOR_DELIVERY]
+interface PricingBreakdown {
+  total: number;
 }
 
-class Order {
-  public readonly id: string;
-  public readonly customerId: string;
-  public readonly restaurantId: string;
-  public readonly items: OrderItem[];
-  public readonly pricing: PricingBreakdown;
-  public readonly paymentId? : string;
-  private status: OrderStatus;
-  public readonly createdAt: Date;
+// =============================================
+// STATE MACHINE
+// =============================================
 
-  constructor(params: {
-    id: string;
-    customerId: string;
-    restaurantId: string;
-    items: OrderItem[];
-    pricing: PricingBreakdown;
-    paymentId?: string;
-  }) {
-    this.id = params.id;
-    this.customerId = params.customerId;
-    this.restaurantId= params.restaurantId;
-    this.items=params.items;
-    this.pricing= params.pricing;
-    this.paymentId = params.paymentId;
-    this.status = OrderStatus.PLACED;
-    this.createdAt = new Date();  
-  }
+const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PLACED]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+  [OrderStatus.CONFIRMED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+  [OrderStatus.PREPARING]: [OrderStatus.OUT_FOR_DELIVERY],
+  [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED],
+  [OrderStatus.DELIVERED]: [],
+  [OrderStatus.CANCELLED]: [],
+  [OrderStatus.FAILED]: [],
+};
+
+// =============================================
+// ENTITY
+// =============================================
+
+class Order {
+  private status: OrderStatus = OrderStatus.PLACED;
+
+  constructor(
+    public readonly id: string,
+    public readonly customerId: string,
+    public readonly restaurantId: string,
+    public readonly items: OrderItem[],
+    public readonly pricing: PricingBreakdown,
+    public paymentId?: string
+  ) {}
 
   getStatus() {
     return this.status;
   }
 
   private transitionTo(next: OrderStatus) {
-    // validate using allowed transitions
+    const allowed = VALID_TRANSITIONS[this.status] || [];
+    if (!allowed.includes(next)) {
+      throw new Error(`Invalid transition ${this.status} -> ${next}`);
+    }
+    this.status = next;
   }
 
   markConfirmed() {
@@ -87,234 +85,279 @@ class Order {
     this.transitionTo(OrderStatus.PREPARING);
   }
 
-  cancel(): void {
-    if (this.status === OrderStatus.PREPARING ||
-      this.status === OrderStatus.OUT_FOR_DELIVERY ||
-      this.status === OrderStatus.DELIVERED
-    ) {
-      throw new Error (
-        'Cannot cancel order '
-      )
-    }
-
-    this.transitionTo(OrderStatus.CANCELLED);
+  markFailed() {
+    this.status = OrderStatus.FAILED;
   }
-
-  // add others similarly
 }
 
+// =============================================
+// DOMAIN
+// =============================================
 
-class Restaruant {
+class Restaurant {
   constructor(public readonly id: string, public readonly name: string) {}
 
   isOpen(): boolean {
     return true;
   }
-
-  getMenu(): MenuItem[] {
-    return [];
-  }
 }
 
-// ===================================================
-// STRATEGY INTERFACES
-// ===================================================
+// =============================================
+// STRATEGIES
+// =============================================
 
 interface DeliveryStrategy {
   calculateShippingCost(distance: number): number;
 }
 
-
-class StardardDeliveryStrategy implements DeliveryStrategy {
-  constructor(private flatFee: number = 40) {}
-
-  calculateShippingCost(_distance: number): number {
-    return 0;
-  }
-}
-
-class ExpressDeliveryStrategy implements DeliveryStrategy {
-
-  constructor(private baseFee: number = 60, private perKmFee: number = 10) {}
-  calculateShippingCost(_distance: number): number {
-    return 0;
-  }
-}
-
-class ScheduledDeliveryStrategy implements DeliveryStrategy {
- 
-  constructor(private slotFee: number = 20) {}
+class StandardDelivery implements DeliveryStrategy {
   calculateShippingCost(): number {
-    return this.slotFee;
+    return 40;
   }
 }
-
 
 interface DiscountStrategy {
   calculateDiscount(items: OrderItem[], subtotal: number): number;
 }
 
-class PercentageDiscount implements DiscountStrategy {
-
-  constructor(private percent: number) {}
-
-  calculateDiscount(items: OrderItem[], subtotal: number): number {
+class NoDiscount implements DiscountStrategy {
+  calculateDiscount(): number {
     return 0;
   }
 }
 
-class FlatAmountDiscount implements DiscountStrategy {
-  constructor(private amount: number) {}
-  calculateDiscount(items: OrderItem[], subtotal: number): number {
-    return 0;
-  }
-}
-
-class FreeDeliveryDiscount implements DiscountStrategy {
-
-  constructor(public readonly freeDelivery: boolean = true) {}
-
-  calculateDiscount(items: OrderItem[], subtotal: number): number {
-    return 0;
-  }
-}
-
-
-
-interface PaymentStrategy {
-  processPayment(amount): Promise<PaymentResult>;
-}
-
+// =============================================
+// PAYMENT
+// =============================================
 
 type PaymentResult = {
-  status: "SUCCESS" | "FAILED" | "RETRY";
+  status: "SUCCESS" | "FAILED";
+  transactionId?: string;
+  error?: string;
 };
 
-class UPIPaymentStrategy implements PaymentStrategy {
+interface PaymentStrategy {
+  pay(amount: number): Promise<PaymentResult>;
+}
+
+class UPIPayment implements PaymentStrategy {
   constructor(private vpa: string) {}
 
-  async pay(amount: number): Promise<PaymentResult> {
+  async pay(): Promise<PaymentResult> {
     if (!this.vpa.includes("@")) {
-      return {
-        success: false, 
-        error: "Invalid UPI format"
-      }
+      return { status: "FAILED", error: "Invalid UPI" };
     }
 
-    const txnId = `upi_${Date.now()}`
-    return {success: true, transactionId: txnId}
+    return {
+      status: "SUCCESS",
+      transactionId: `txn_${Date.now()}`,
+    };
   }
 }
 
-class CCPaymentStrategy implements PaymentStrategy {
-  constructor(private cardNumber: string, private cvv: string, private expiry: string) {}
+interface PaymentProcessor {
+  processPayment(
+    amount: number,
+    strategy: PaymentStrategy
+  ): Promise<PaymentResult>;
+}
 
-  async pay(amount: number): Promise<PaymentResult> {
-    if (this.cvv.length != 3) {
-      return {
-        success: false, 
-        error: "Invalid CVV"
-      }
-    }
-
-    const txnId = `upi_${Date.now()}`
-    return {success: true, transactionId: txnId}
+class DefaultPaymentProcessor implements PaymentProcessor {
+  processPayment(amount: number, strategy: PaymentStrategy) {
+    return strategy.pay(amount);
   }
 }
 
-class CODPaymentStrategy implements PaymentStrategy {
-  constructor(private vpa: string) {}
-
-  async pay(amount: number): Promise<PaymentResult> {
-    if (!this.vpa.includes("@")) {
-      return {
-        success: false, 
-        error: "Invalid UPI format"
-      }
-    }
-
-    const txnId = `upi_${Date.now()}`
-    return {success: true, transactionId: txnId}
-  }
-}
-
-// DOMAIN Interfaces
-
-interface OrderValidator {
-  validate(
-    items: OrderItem[],
-    restrauntId: Restaruant
-  ): ValidationResult;
-}
+// =============================================
+// VALIDATION
+// =============================================
 
 interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
 
-
-// Pricing
-
-interface PricingStrategy {
-  calulateTotalCost(items: OrderItem[], deliveryType: DeliveryStrategy, discountType: DiscountStrategy | null): number;
+interface OrderValidator {
+  validate(items: OrderItem[], restaurant: Restaurant): ValidationResult;
 }
 
-interface PaymentProcessor {
-  processPayment(amount: number, strategy: PaymentStrategy): Promise<PaymentResult>;
+class DefaultValidator implements OrderValidator {
+  validate(items: OrderItem[], restaurant: Restaurant): ValidationResult {
+    const errors: string[] = [];
+
+    if (!restaurant.isOpen()) errors.push("Restaurant closed");
+    if (!items.length) errors.push("Empty order");
+
+    if (items.some(i => i.menuItem.available < i.quantity)) {
+      errors.push("Out of stock");
+    }
+
+    return { isValid: errors.length === 0, errors };
+  }
 }
 
+// =============================================
+// PRICING
+// =============================================
 
-// Persistence
+interface PricingService {
+  calculate(
+    items: OrderItem[],
+    delivery: DeliveryStrategy,
+    discount: DiscountStrategy,
+    distance: number
+  ): number;
+}
+
+class DefaultPricing implements PricingService {
+  calculate(
+    items: OrderItem[],
+    delivery: DeliveryStrategy,
+    discount: DiscountStrategy,
+    distance: number
+  ): number {
+    const subtotal = items.reduce(
+      (acc, i) => acc + i.menuItem.price * i.quantity,
+      0
+    );
+
+    const tax = subtotal * 0.05;
+    const deliveryCost = delivery.calculateShippingCost(distance);
+    const discountValue = discount.calculateDiscount(items, subtotal);
+
+    return subtotal + tax + deliveryCost - discountValue;
+  }
+}
+
+// =============================================
+// REPOSITORY
+// =============================================
 
 interface OrderRepository {
-  save(order: Order): Promise<Order>;
-  findById(id: string): Promise<Order>;
-  updateStatus(id: string, status: OrderStatus): Promise<Order>;
+  save(order: Order): Promise<void>;
 }
 
+class InMemoryOrderRepo implements OrderRepository {
+  private db = new Map<string, Order>();
 
+  async save(order: Order) {
+    this.db.set(order.id, order);
+  }
+}
 
-// -- Notifications (ISP: seprate per recipient type)
-// Each interface represnet a Role not a channel
-// the implemntaiton decide which channel to use
+// =============================================
+// NOTIFIERS
+// =============================================
 
 interface CustomerNotifier {
-  orderPlaced(customer: Customer, order: Order): Proimise<void>;
-  orderStatusChanged(customer: Customer, order: Order): Proimise<void>;
+  notify(customer: Customer, message: string): Promise<void>;
 }
 
-interface RestaruantNotifier {
-  newOrder(restaruant: Restaruant, order: Order): Proimise<void>;
+class ConsoleNotifier implements CustomerNotifier {
+  async notify(customer: Customer, message: string) {
+    console.log(`[Notify ${customer.name}] ${message}`);
+  }
 }
 
+// =============================================
+// ORCHESTRATOR (MAIN)
+// =============================================
 
-interface DriverNotifer {
-  deliveryAssigned(driver: Driver, order: Order): Proimise<void>;
-}
-
-
-// Implemenations
 class OrderService {
   constructor(
     private validator: OrderValidator,
-    private pricing: PriceCalculator,
-    private payment: PaymentStrategy,
-    private repo: OrderRepository
+    private pricing: PricingService,
+    private paymentProcessor: PaymentProcessor,
+    private repo: OrderRepository,
+    private notifier: CustomerNotifier
   ) {}
 
-  async createOrder(order: Order) {
-    order.markPreparing();
-    this.validator.validate(order.restaurantId, order.items);
+  async createOrder(params: {
+    customer: Customer;
+    restaurant: Restaurant;
+    items: OrderItem[];
+    delivery: DeliveryStrategy;
+    discount: DiscountStrategy;
+    payment: PaymentStrategy;
+    distance: number;
+  }): Promise<Order> {
+    const { customer, restaurant, items, delivery, discount, payment, distance } = params;
 
-    const price = this.pricing.calulateTotalCost(order);
-
-    const paymentResult = await this.payment.processPayment(price.total);
-
-    if (paymentResult.status !== "SUCCESS") {
-      throw new Error("Payment failed");
+    // 1. Validate
+    const result = this.validator.validate(items, restaurant);
+    if (!result.isValid) {
+      throw new Error(result.errors.join(", "));
     }
 
-    order.markConfirmed();
-    await this.repo.save(order);
+    // 2. Price
+    const total = this.pricing.calculate(items, delivery, discount, distance);
+
+    // 3. Create Order
+    const order = new Order(
+      `order_${Date.now()}`,
+      customer.id,
+      restaurant.id,
+      items,
+      { total }
+    );
+
+    try {
+      // 4. Payment
+      const paymentResult = await this.paymentProcessor.processPayment(total, payment);
+
+      if (paymentResult.status !== "SUCCESS") {
+        order.markFailed();
+        throw new Error("Payment failed");
+      }
+
+      order.paymentId = paymentResult.transactionId;
+
+      // 5. State transitions
+      order.markConfirmed();
+      order.markPreparing();
+
+      // 6. Save
+      await this.repo.save(order);
+
+      // 7. Notify
+      await this.notifier.notify(customer, "Order placed successfully");
+
+      return order;
+
+    } catch (err) {
+      order.markFailed();
+      throw err;
+    }
   }
 }
+
+// =============================================
+// USAGE EXAMPLE
+// =============================================
+
+(async () => {
+  const service = new OrderService(
+    new DefaultValidator(),
+    new DefaultPricing(),
+    new DefaultPaymentProcessor(),
+    new InMemoryOrderRepo(),
+    new ConsoleNotifier()
+  );
+
+  const order = await service.createOrder({
+    customer: { id: "c1", name: "Manish", email: "", phone: "" },
+    restaurant: new Restaurant("r1", "Dominos"),
+    items: [
+      {
+        menuItem: { id: "m1", name: "Pizza", price: 200, available: 10 },
+        quantity: 2,
+      },
+    ],
+    delivery: new StandardDelivery(),
+    discount: new NoDiscount(),
+    payment: new UPIPayment("manish@upi"),
+    distance: 5,
+  });
+
+  console.log("Order Created:", order.getStatus());
+})();

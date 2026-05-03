@@ -1,16 +1,10 @@
 /**
  * ============================================
- * Section A — Spot the Violations
+ * Section A — Spot the Violations (FINAL)
  * ============================================
- * Instructions:
- * For each snippet (A1–A6), identify:
- * 1. Which principle(s) are violated
- * 2. Why (in 1–2 sentences)
- *
- * NOTE:
- * - Do NOT modify the code
- * - Do NOT implement fixes here
- * - Only analyze violations
+ * Each snippet includes:
+ * - Violated principle(s)
+ * - Concise interview-ready explanation
  * ============================================
  */
 
@@ -18,10 +12,14 @@
  * ============================================
  * A1 — Logger Interface & Implementation
  * ============================================
- * Focus:
- * - Interface design
- * - Implementation responsibilities
- * - Unsupported methods throwing errors
+ * Violations:
+ * - Interface Segregation Principle (ISP)
+ * - Single Responsibility Principle (SRP)
+ *
+ * Why:
+ * The Logger interface forces implementations to support multiple unrelated logging mechanisms.
+ * ConsoleLogger is forced to implement methods it does not support, violating ISP.
+ * Also, the interface mixes multiple responsibilities (file, DB, cloud logging), giving it multiple reasons to change.
  */
 interface Logger {
   log(message: string): void;
@@ -36,17 +34,14 @@ class ConsoleLogger implements Logger {
   }
 
   logToFile() {
-    // Method not supported by this implementation
     throw new Error('Not supported');
   }
 
   logToDatabase() {
-    // Method not supported by this implementation
     throw new Error('Not supported');
   }
 
   logToCloudWatch() {
-    // Method not supported by this implementation
     throw new Error('Not supported');
   }
 }
@@ -55,14 +50,19 @@ class ConsoleLogger implements Logger {
  * ============================================
  * A2 — Report Generator
  * ============================================
- * Focus:
- * - Conditional logic for formats
- * - Adding new formats (extensibility concern)
- * - Dependency loading inside method
+ * Violations:
+ * - Open/Closed Principle (OCP)
+ * - Single Responsibility Principle (SRP)
+ * - Dependency Inversion Principle (DIP)
+ *
+ * Why:
+ * Adding a new format requires modifying the existing method, violating OCP.
+ * The class handles multiple responsibilities: format selection, report generation, and dependency loading.
+ * It directly depends on concrete libraries (pdfkit, exceljs), violating DIP.
  */
 class ReportGenerator {
   async generate(data: SalesData[], format: string) {
-    // Step 1: process data
+    // process data
 
     if (format === 'pdf') {
       const PDFKit = require('pdfkit');
@@ -74,9 +74,7 @@ class ReportGenerator {
       // generate CSV
     }
 
-    // NOTE:
-    // New format planned: "html"
-    // Think about how this impacts existing code
+    // New format next sprint: "html"
   }
 }
 
@@ -84,9 +82,12 @@ class ReportGenerator {
  * ============================================
  * A3 — Bird Hierarchy
  * ============================================
- * Focus:
- * - Inheritance design
- * - Behavior compatibility between parent and child
+ * Violations:
+ * - Liskov Substitution Principle (LSP)
+ *
+ * Why:
+ * The Penguin class cannot honor the contract of the Bird class (fly method).
+ * Replacing Bird with Penguin breaks expected behavior, violating substitutability.
  */
 class Bird {
   fly(): void {
@@ -104,7 +105,6 @@ class Bird {
 
 class Penguin extends Bird {
   fly(): void {
-    // Penguins cannot fly, but parent class enforces this behavior
     throw new Error("Penguins can't fly!");
   }
 }
@@ -113,10 +113,13 @@ class Penguin extends Bird {
  * ============================================
  * A4 — Dashboard Controller
  * ============================================
- * Focus:
- * - Object creation inside class
- * - External service dependencies
- * - Tight coupling vs abstraction
+ * Violations:
+ * - Dependency Inversion Principle (DIP)
+ * - Single Responsibility Principle (SRP)
+ *
+ * Why:
+ * The controller directly creates concrete dependencies instead of depending on abstractions, violating DIP.
+ * It also has multiple responsibilities (data fetching, analytics, caching), giving it multiple reasons to change.
  */
 class DashboardController {
   private analyticsService = new MixpanelService(MP_KEY);
@@ -124,16 +127,11 @@ class DashboardController {
   private cache = new RedisClient(REDIS_URL);
 
   async getDashboard(userId: string) {
-    // Fetch user data
     const user = await this.userRepo.find(userId);
-
-    // Fetch analytics data
     const metrics = await this.analyticsService.getUserMetrics(userId);
-
-    // Fetch cached dashboard
     const cached = await this.cache.get(`dashboard:${userId}`);
 
-    // Build dashboard response
+    // build dashboard
   }
 }
 
@@ -141,9 +139,13 @@ class DashboardController {
  * ============================================
  * A5 — User Profile Class
  * ============================================
- * Focus:
- * - Number of responsibilities in one class
- * - Mixing different domains (DB, auth, storage, email, GDPR, etc.)
+ * Violations:
+ * - Single Responsibility Principle (SRP)
+ * - (Design Smell: God Class)
+ *
+ * Why:
+ * The class handles multiple unrelated responsibilities such as profile management, authentication,
+ * file uploads, email sending, and GDPR compliance. It has many reasons to change.
  */
 class UserProfile {
   constructor(private db: Database) {}
@@ -153,11 +155,11 @@ class UserProfile {
   }
 
   async updateProfile(userId: string, data: any) {
-    /* update profile */
+    /* update */
   }
 
   async changePassword(userId: string, newPass: string) {
-    /* hash + save password */
+    /* hash + save */
   }
 
   async uploadAvatar(userId: string, file: Buffer) {
@@ -169,11 +171,11 @@ class UserProfile {
   }
 
   async deleteAccount(userId: string) {
-    /* cascade delete everything */
+    /* cascade delete */
   }
 
   async exportUserData(userId: string) {
-    /* GDPR export to zip */
+    /* GDPR export */
   }
 }
 
@@ -181,9 +183,12 @@ class UserProfile {
  * ============================================
  * A6 — Shipping Provider Implementation
  * ============================================
- * Focus:
- * - Contract expectations vs implementation behavior
- * - Input handling differences
+ * Violations:
+ * - Liskov Substitution Principle (LSP)
+ *
+ * Why:
+ * The base contract allows any destination, but this implementation rejects certain valid inputs.
+ * This breaks the expected contract and violates substitutability.
  */
 interface ShippingProvider {
   calculateRate(weight: number, destination: string): Promise<number>;
@@ -191,9 +196,6 @@ interface ShippingProvider {
 
 class InternationalShipping implements ShippingProvider {
   async calculateRate(weight: number, destination: string): Promise<number> {
-    // Parent contract allows ANY destination string
-    // This implementation restricts certain inputs
-
     if (destination.startsWith('US-')) {
       throw new Error('International shipping only!');
     }

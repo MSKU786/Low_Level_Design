@@ -98,6 +98,19 @@ class JSONFormatter implements ReportFormatter {
   }
 }
 
+class FormatterFactory {
+  private static formatters: Record<string, ReportFormatter> = {
+    csv: new CSVFormatter(),
+    json: new JSONFormatter(),
+  };
+
+  static getFormatter(format: string): ReportFormatter {
+    const formatter = this.formatters[format];
+    if (!formatter) throw new Error('Unsupported format');
+    return formatter;
+  }
+}
+
 class InventoryManager {
   constructor(
     private validator: ProductValidator,
@@ -203,12 +216,8 @@ class InventoryManager {
   async generateStockReport(format: 'csv' | 'json'): Promise<string> {
     const products = await this.db.query('SELECT * FROM products');
 
-    if (format === 'csv') {
-      return products
-        .map((p: Product) => `${p.sku},${p.name},${p.stock},${p.price}`)
-        .join('\n');
-    } else {
-      return JSON.stringify(products, null, 2);
-    }
+    const formatter = FormatterFactory.getFormatter(format);
+
+    return formatter.format(products);
   }
 }

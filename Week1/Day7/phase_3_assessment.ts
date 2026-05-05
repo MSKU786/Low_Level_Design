@@ -6,6 +6,7 @@ enum SeatType {
 
 class Seat {
   type: SeatType
+  row: number
   booked: boolean
   number: string
 }
@@ -38,6 +39,8 @@ class MovieFinder {
   static search(keyword, date) {}
 }
 
+
+
 class CreditCardPayment implements PaymentStrategy {
   constructor(private cardNumber) {}
   processPayment(amount: number) {
@@ -58,6 +61,10 @@ interface CouponsStrategy {
 }
 
 
+interface Notifier {
+  
+}
+
 class BookingSystem {
 
   searchMovie(keyword, date) {
@@ -65,6 +72,6 @@ class BookingSystem {
   }
 
   bookTickets(movie) {
-    
+
   }
 }

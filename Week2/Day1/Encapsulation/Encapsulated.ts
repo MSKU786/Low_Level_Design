@@ -65,4 +65,24 @@ class BankAccount {
     this._frozen = false;
   }
 
+
+  get balance(): number {
+    return this._balance;
+  }
+
+  get transactions(): readonly Transaction[] {
+    return [...this._transactions]
+  }
+
+  get isFrozen() : boolean {
+    return this._frozen
+  }
+
+  get availableBalance(): number {
+    return this._balance + this._overdraftLimit;
+  }
+
+  get transactionsCount(): number {
+    return this._transactions.length;
+  }
 }

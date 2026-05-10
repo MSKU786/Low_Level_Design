@@ -77,12 +77,29 @@ class ShoppingCart {
     })
   }
 
-  applyCoupoun() {
-
+  applyCoupon(code: string): void {
+    if (this.coupon !== null) {
+      throw new Error("A coupon is already applied. Remove it before applying a new one.");
+    }
+  
+    if (!code || code.trim().length === 0) {
+      throw new Error("Invalid coupon code.");
+    }
+  
+    this.coupon = code.trim();
   }
-
-  removeCoupoun() {
-
+  
+  removeCoupon(): void {
+    if (this.coupon === null) {
+      throw new Error("No coupon is currently applied.");
+    }
+  
+    this.coupon = null;
+  }
+  
+  // Safe getter — read only, no direct mutation
+  get appliedCoupon(): string | null {
+    return this.coupon;
   }
 
   clear() {

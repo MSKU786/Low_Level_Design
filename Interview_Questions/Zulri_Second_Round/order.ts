@@ -44,46 +44,70 @@ User should receive immediate acknowledgment after placing an order
 
 */
 
-OrderService
+interface OrderValidator {
+    validate(order: OrderRequest): boolean
+}
 
-// OrderRequest : which stock, quantity, type, price, symbol
-orderPlace() {
-	validateOrder(orderRequest)
-	
+
+enum OrderType {
+    MARKET = "MARKET",
+    LIMIT = "LIMIT",
+    STOP_LOSS = "STOP_LOSS"
+}
+
+enum OrderSide {
+    BUY = "BUY",
+    SELL = "SELL"
+}
+
+enum OrderStatus {
+    OPEN = "OPEN",
+    REJECTED = "REJECTED",
+    CANCELLED = "CANCELLED",
+    EXECUTED = "EXECUTED"
 }
 
 interface OrderRequest {
-    
+    userId: string
+    symbol: string
+    quantity: number
+    side: OrderSide
+    type: OrderType
+    price?: number
+    stopPrice?: number
 }
 
-interface OrderValidator {
-    validateOrder(order: OrderRequest): boolean
-}
+class LimitOrderValidator extends BaseOrderValidator {
 
+    validate(order: OrderRequest): void {
+        super.validate(order)
 
-
-class LimitOrderValidator implements OrderValidator {
-    validateOrder(order: OrderRequest): boolean {
-        const stock = DBRepository.getStockDetails(order) 
-        
-        if (order.quanity > stock.quantity) {
-            throw new Error("Stocks quantity is higher")
+        if (order.price == null || order.price <= 0) {
+            throw new Error("Limit price is required")
         }
-        
-        if (type check) {
-            
-        }
-        
-        if (order.type = "LIMIT" && price < 0) {
-            
-        }
-        
     }
 }
 
-class MarkOrderValidator implements Or
+class BaseOrderValidator implements OrderValidator {
 
+    validate(order: OrderRequest): void {
 
+        if (!order.symbol) {
+            throw new Error("Invalid symbol")
+        }
+
+        if (order.quantity <= 0) {
+            throw new Error("Quantity should be greater than 0")
+        }
+    }
+}
+
+class MarketOrderValidator extends BaseOrderValidator {
+
+    validate(order: OrderRequest): void {
+        super.validate(order)
+    }
+}
 class DBRepository {
     blockOrder(order: OrderRequest) {
         

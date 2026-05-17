@@ -130,10 +130,31 @@ Requirements:
 //   ...
 // }
 
+class Pipeline<TIn, TOut> {
+  constructor(
+    private validator: Validator<TIn>,
+    private mapper: Mapper<TIn, TOut>,
+    private filters: Filter<TOut>[]   // array — compose any number of filters
+  ) {}
 
-class Pipeline<Tin, TOut> {
-  constructor(private )
+  process(rawItems: TIn[]): TOut[] {
+    // Step 1: Validate — drop invalid rows
+    const validItems = rawItems.filter((item) => {
+      const result = this.validator.validate(item);
+      if (!result.valid) {
+        console.warn(`Skipping item due to errors: ${result.errors.join(", ")}`);
+      }
+      return result.valid;
+    });
+
+    // Step 2: Map — transform each item
+    const mappedItems = validItems.map((item) => this.mapper.map(item));
+
+    // Step 3: Filter — chain all filters in sequence
+    return this.filters.reduce((items, filter) => filter.apply(items), mappedItems);
+  }
 }
+
 // ============================================================
 // PART B: Build a Concrete Product Pipeline
 // ============================================================

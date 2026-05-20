@@ -50,25 +50,73 @@ interface Report {
   generate(sources: string): ReportOutput
 }
 
-
-interface DeliveryStrategy<T>{
-  deliver(args: T)
+// --- Strategy interface (OCP: add new strategies without modifying reports) ---
+interface DeliveryStrategy {
+  deliver(output: ReportOutput): Promise<void>;
 }
 
-class EmailDeliveryStrategy implements DeliveryStrategy<string> {
-  deliver(args: string) {
-    this.sendEmail()
+// --- Concrete strategies (config goes in constructor, not deliver()) ---
+class EmailDeliveryStrategy implements DeliveryStrategy {
+  constructor(private toEmail: string) {}
+
+  async deliver(output: ReportOutput): Promise<void> {
+    console.log(`Sending report to ${this.toEmail}`, output);
+  }
+}
+
+class SaveToDiskStrategy implements DeliveryStrategy {
+  constructor(private filePath: string) {}
+
+  async deliver(output: ReportOutput): Promise<void> {
+    console.log(`Saving report to ${this.filePath}`, output);
+  }
+}
+
+class S3DeliveryStrategy implements DeliveryStrategy {
+  constructor(private bucketPath: string) {}
+
+  async deliver(output: ReportOutput): Promise<void> {
+    console.log(`Uploading report to S3: ${this.bucketPath}`, output);
   }
 }
 
 abstract class BaseReport implements Report {
-  generate(sources: string) : ReportOutput {
+
+  constructor(private args: string, private deliveryStrategy: DeliveryStrategy<string>) {
+
+  }
+
+  generate(sources: string): ReportOutput {
     const data = this.fetchData(sources);
     
     this.validateData(data);
 
     const output = this.formatOutput(data);
 
+    this.deliveryStrategy(this.args, output)
+  }
 
+
+  protected async fetchData(sources: string) {}
+
+  private validateData(data) {
+
+  }
+
+  protected async formatOutput(data) {
+
+  }
+
+}
+
+
+class AnalyticsReport extends BaseReport {
+  protected async fetchData(sources: string): Promise<> {
+    const res = await fetch(sources)
+    return res.json();
+  }
+
+  protected async formatOutput(data: any): Promise<void> {
+    
   }
 }

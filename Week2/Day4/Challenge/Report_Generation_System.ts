@@ -46,8 +46,20 @@
 // 7. The ReportService orchestrator
 
 
+// --- Types ---
+interface ReportData {
+  fields: Record<string, unknown>;
+  rows: unknown[];
+}
+
+interface ReportOutput {
+  content: string;
+  generatedAt: Date;
+}
+
+// --- DIP boundary: consumers depend on this ---
 interface Report {
-  generate(sources: string): ReportOutput
+  generate(source: string): Promise<ReportOutput>;
 }
 
 // --- Strategy interface (OCP: add new strategies without modifying reports) ---
@@ -80,43 +92,86 @@ class S3DeliveryStrategy implements DeliveryStrategy {
   }
 }
 
+// --- Template Method pattern lives here (DRY: validateData once) ---
 abstract class BaseReport implements Report {
+  constructor(private deliveryStrategies: DeliveryStrategy[]) {}
 
-  constructor(private args: string, private deliveryStrategy: DeliveryStrategy<string>) {
+  // Template method — lifecycle is fixed, steps are overridden
+  async generate(source: string): Promise<ReportOutput> {
+    const data = await this.fetchData(source);
+    this.validateData(data);                   // same for all reports
+    const output = await this.formatOutput(data);
 
+    for (const strategy of this.deliveryStrategies) {
+      await strategy.deliver(output);          // mixed delivery
+    }
+
+    return output;
   }
 
-  generate(sources: string): ReportOutput {
-    const data = this.fetchData(sources);
-    
-    this.validateData(data);
+  // LSP: subclasses override these without breaking the lifecycle contract
+  protected abstract fetchData(source: string): Promise<ReportData>;
+  protected abstract formatOutput(data: ReportData): Promise<ReportOutput>;
 
-    const output = this.formatOutput(data);
-
-    this.deliveryStrategy(this.args, output)
+  // SRP: validation is one responsibility, lives in one place
+  private validateData(data: ReportData): void {
+    if (!data.rows || data.rows.length === 0) {
+      throw new Error("Report data is empty");
+    }
+    if (!data.fields || Object.keys(data.fields).length === 0) {
+      throw new Error("Report is missing required fields");
+    }
   }
-
-
-  protected async fetchData(sources: string) {}
-
-  private validateData(data) {
-
-  }
-
-  protected async formatOutput(data) {
-
-  }
-
 }
 
+// --- Concrete reports (only override what varies) ---
+class SalesReport extends BaseReport {
+  protected async fetchData(source: string): Promise<ReportData> {
+    console.log(`Querying DB: ${source}`);
+    return { fields: { region: "North" }, rows: [{ sale: 100 }] };
+  }
+
+  protected async formatOutput(data: ReportData): Promise<ReportOutput> {
+    const table = data.rows.map(r => JSON.stringify(r)).join("\n");
+    return { content: `TABLE:\n${table}`, generatedAt: new Date() };
+  }
+}
 
 class AnalyticsReport extends BaseReport {
-  protected async fetchData(sources: string): Promise<> {
-    const res = await fetch(sources)
-    return res.json();
+  protected async fetchData(source: string): Promise<ReportData> {
+    const res = await fetch(source);
+    const json = await res.json();
+    return { fields: json.meta, rows: json.data };
   }
 
-  protected async formatOutput(data: any): Promise<void> {
-    
+  protected async formatOutput(data: ReportData): Promise<ReportOutput> {
+    return { content: `CHART: ${data.rows.length} data points`, generatedAt: new Date() };
   }
 }
+
+// --- CustomReport: completely different lifecycle, just honours the Report contract ---
+class CustomReport implements Report {
+  async generate(source: string): Promise<ReportOutput> {
+    // Does its own thing — no validateData, no delivery strategies
+    console.log(`Custom report from ${source}`);
+    return { content: "Custom output", generatedAt: new Date() };
+  }
+}
+
+// --- Orchestrator (SRP: only job is to run reports) ---
+class ReportService {
+  async run(report: Report, source: string): Promise<void> {
+    const output = await report.generate(source);
+    console.log("Report complete:", output.generatedAt);
+  }
+}
+
+// --- Usage ---
+const service = new ReportService();
+
+const sales = new SalesReport([
+  new EmailDeliveryStrategy("manager@company.com"),
+  new S3DeliveryStrategy("s3://reports/sales")
+]);
+
+await service.run(sales, "SELECT * FROM sales");

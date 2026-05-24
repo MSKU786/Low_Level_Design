@@ -24,9 +24,81 @@ interface ItemAvailability {
   checkAvailability(): boolean;
 }
 
-interface DBRepository<T> {
+
+interface HasId {
+  readonly id: string
+}
+
+interface Repository<T extends HasId> {
   save(item: T): void;
   update(item: T): void;
+  findById(id: string): T | null
+  findAll(): T[];
+  delete(id: string): boolean;
+}
+
+
+class InMemoryRepository<T extends HasId> implements Repository<T> {
+  private store = new Map<string, T>();
+
+  save(item: T): void {
+    this.store.set(item.id, item);
+  }
+
+  findById(id: string): T | null {
+    return this.store.get(id) ?? null;
+  }
+
+  findAll(): T[] {
+    return [...this.store.values()]
+  }
+
+  update(item: T): void {
+    this.store.set(item.id, item)
+  }
+
+  delete(id: string): boolean {
+    return this.store.delete(id);
+  }
+}
+
+
+// Reservation QUeue
+
+class ReservationQueue<T> {
+  private queues = new Map<string, T[]>();
+
+  enquue(itemId: string, entry: T): void {
+    const queue = this.queues.get(itemId) ?? [];
+    queue.push(entry);
+    this.queues.set(itemId, queue);
+  }
+
+  dequeue(itemId: string) : T | null {
+    const queue = this.queues.get(itemId);
+    if (!queue || queue.length === 0) return null;
+    return queue.shift()!;
+  }
+
+  remove(itemId: string, predicate: (entry: T) => boolean) : boolean {
+    const queue = this.queues.get(itemId);
+    if (!queue) return false;
+    const index = queue.findIndex(predicate);
+    if (index === -1) return false;
+    queue.splice(index, 1);
+    return true;
+  }
+
+  hasReservations(itemId: string) : boolean {
+    const queue = this.queues.get(itemId);
+    return !!queue && queue.length > 0;
+  }
+}
+
+
+interface Reservation {
+  memberId: string;
+  reservedAt: Date;
 }
 
 interface Notifier {

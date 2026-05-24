@@ -164,6 +164,126 @@ const TeacherPolicy: BorrowingPolicy = {maxItems: 10, loanDurationDays: 30};
 const PublicPolicy: BorrowingPolicy = {maxItems: 5, loanDurationDays: 21}
 
 
+
+// Member Class
+
+class Member {
+  public readonly id: string;
+  public readonly name: string;
+  public readonly email: string;
+  public readonly phone: string;
+  private _policy: BorrowingPolicy;
+  private _activeLoans: Set<string> = new Set();
+
+  constructor(
+    id: string,
+    name: string, 
+    email: string,
+    phone: string,
+    policy: BorrowingPolicy
+  ) {
+    this.id = id;
+    this.email = email;
+    this.name = name;
+    this.phone = phone,
+    this._policy = policy;
+  }
+
+  get policy(): BorrowingPolicy {
+    return this._policy;
+  }
+
+  get activeLoanCount(): number {
+    return this._activeLoans.size;
+  }
+
+  canBorrow(): boolean {
+    return this._activeLoans.size < this._policy.maxItems;
+  }
+
+  addLoan(loanId: string) : void {
+    if (!this.canBorrow()) {
+      throw new Error("Member capacity exhausted")
+    }
+    this._activeLoans.add(loanId);
+  }
+
+  removeLoan(loanId: string) : void {
+    this._activeLoans.delete(loanId)
+  }
+}
+
+
+
+
+// LOan (heavily encapusulated - protects due dueate, fine status)
+
+class Loan {
+  public readonly id: string;
+  public readonly itemId: string;
+  public readonly memberId: string;
+  public readonly borrowDate: Date;
+  public readonly dueDate: Date;
+  private _returnDate: Date ! null = null ;
+  private _fine: number = 0;
+  private _status : LoanStatus = LoanStatus.Active;
+
+  constructor(
+    id: string,
+    itemId: string,
+    memberId: string,
+    loanDurationDays: number 
+  ) {
+    this.id = id;
+    this.itemId = itemId;
+    this.memberId = memberId;
+    this.borrowDate = new Date();
+    this.dueDate = new Date(Date.now() + loanDurationDays * 24 * 60 * 60 * 1000);
+  }
+
+  get returnDate(): Date | null { 
+    return this._returnDate
+  }
+
+  get fine(): number {
+    return this._fine;
+  }
+
+  get status(): LoanStatus {
+    return this._status;
+  }
+
+  get isOverdue(): boolean {
+    const compareDate = this._returnDate ?? new Date();
+    return compareDate > this.dueDate
+  }
+
+  get daysOverDue(): number {
+    if (!this.isOverdue) return 0;
+    const compareDate = this._returnDate ?? new Date();
+    const diff = compareDate.getTime() - this.dueDate.getTime();
+    return Math.ceil(diff / (24 * 3600 * 1000));
+  }
+
+  markReturned(fine: number): void {
+    if (this._status !== LoanStatus.Active) {
+      throw new Error(`Invalid status`)
+    }
+
+    this._returnDate = new Date();
+    this._fine = fine; 
+    this._status = LoanStatus.Returned;
+  }
+
+  markOverdue(): void {
+    if (this._status === LoanStatus.Active) {
+      this._status = LoanStatus.Overdue;
+    }
+  }
+}
+
+
+
 class BorrowService {
   constructor(
     private validator: MemberValidator,

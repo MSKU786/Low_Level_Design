@@ -283,6 +283,44 @@ class Loan {
 }
 
 
+// Fine Strategy 
+
+interface FineStrategy {
+  calculate(daysOverDue: number): number;
+}
+
+class BookFine implements FineStrategy {
+  calculate(daysOverDue: number): number {
+    return daysOverDue*2;
+  }
+}
+
+
+class DVDFine implements FineStrategy {
+  calculate(daysOverDue: number): number {
+    return daysOverDue*5;
+  }
+}
+
+
+// REgistry maps item type -> fine strategy
+// Adding a new Item type = add one entry here. Nthing else change
+
+class FineRegistry {
+  private strategies = new Map<string, FineStrategy>();
+
+  register(itemType: string, strategy: FineStrategy): void {
+    this.strategies.set(itemType, strategy);
+  }
+
+  getStrategy(itemType: string): FineStrategy {
+    const strategy = this.strategies.get(itemType);
+    if (!strategy) 
+      throw new Error("No fine strategy found")
+    return strategy;
+  }
+}
+
 
 class BorrowService {
   constructor(

@@ -296,7 +296,7 @@ class Loan {
   public readonly memberId: string;
   public readonly borrowDate: Date;
   public readonly dueDate: Date;
-  private _returnDate: Date ! null = null ;
+  private _returnDate: Date|null = null ;
   private _fine: number = 0;
   private _status : LoanStatus = LoanStatus.Active;
 
@@ -394,23 +394,133 @@ class FineRegistry {
 }
 
 
+
+// Search Service
+
+
+class SearchService {
+  constructor(private itemRepo: Repository<LibraryItem>) {}
+
+  searhByText(query: stirng): LibraryItem[] {
+
+  }
+
+  searchByYear(year: number): LibraryItem[] {
+
+  }
+
+  getAvailable(): LibraryItemp[] {
+    return (this.itemRepo as InMemoryRepository<LibraryItem>).findWhere(item => item.isAvailable);
+  }
+}
 class BorrowService {
   constructor(
-    private validator: MemberValidator,
-    private itemAvailablity: ItemAvailability,
-    private dbRepo: DBRepository<Book>,
+    private itemRepo: Repository<LibraryItem>,
+    private loanRepo: InMemoryRepository<Loan>,
+    private memberRepo: Repository<Member>,
     private notifier: Notifier,
   ) {}
 
-  async borrowBook(item: LibraryItem) {
-    const isMemberValid = this.validator.validate();
-    if (!isMemberValid) {
-      throw new Error('Member is not valid');
+  async borrowBook(memberId: string, itemId:string): Promise<Loan> {
+
+    const member = this.memberRepo.findById(memberId);
+    if (!member) throw new Error(`Member ${memberId} not found`);
+
+    const item = this.itemRepo.findById(itemId);
+    if (!item) throw new Error(`Item ${itemId} not found`)
+    
+    // Validate member can borrow
+    if (!member.canBorrow()) {
+      throw new Error(`${member.name} has reached bowrrowing limit (${member.policy.maxItems})`)
     }
 
-    const isItemAvaiable = this.itemAvailablity.checkAvailability(item);
-    if (!isItemAvaiable) {
-      throw new Error('Item is not available');
+    // 3. Validate itme is available
+    if (!item.isAvailable) {
+      throw new Error(`${item.title} is currently borrowed`)
+    }
+
+    // 4. Create loan with due date from member's policy
+    const loan = new Loan(
+      `loan_${Date.now()}`,
+      itemId,
+      memberId,
+      member.policy.loanDurationDays
+    );
+
+    // 5. Mark item as borrowed + add loan to member
+    item.markBorrowed();
+    member.addLoan(loan.id);
+
+    // Save
+    this.loanRepo.save(loan);
+
+    // Notify
+    await this.notifier.send(member, loan);
+
+    return loan;
+  }
+}
+
+
+
+// Return Service 
+
+class ReturnService {
+  constructor(
+    private itemRepo: Repository<LibraryItem>,
+    private loanRepo: InMemoryRepository<Loan>,
+    private memberRepo: Repository<Member>,
+    private fineRegistry: FineRegistry,
+    private reservations: ReservationQueue<Reservation>,
+    private Notifier: Notifier,
+  ) {}
+
+  async returnItem(loanId: string): Product<{loan: Loan; fine: number}> {
+
+    // 1. Find the active loan
+    const loan = this.loanRepo.findById(loanId);
+    if (!loan) throw new Error(`LOan ${loanId} not found`);
+
+    if (loan.status !== LoanStatus.Active && loan.status !== LoanStatus.Overdue) {
+      throw new Error(`Loan ${loanId} is already ${loan.status}`)
+    }
+
+    // 2. find the item and member
+    const item = this.itemRepo.findById(loan.itemId);
+    if (!item) throw new Error(`Item ${loan.itemId} not found`);
+
+    const member = this.memberRepo.findById(loan.memberId);
+    if (!member) throw new Error(`Member ${loan.memberId} not found`)
+
+    // 3. calculate fine
+    const findStrategy = this.fineRegistry.getStrategy(item.itemType);
+    const fine = loan.isOverdue ? findStrategy.calculate(loan.daysOverDue) : 0;
+
+    loan.markReturned(fine);
+
+    item.markReturned();
+
+    member.removeLoan(loanId);
+
+    // 7 Ccheck reserveration queue
+
+    if (this.reservations.hasReservations(item.id)) {
+      const nextReservations = this.reservations.dequeue(item.id);
+      if (nextReservations) {
+        const nextMember = this.memberRepo.findById(nextReservations.memberId);
+        if (nextMember) {
+          await this.Notifier.send(msg);
+        }
+      }
     }
   }
+
+  // Save 
+  this.loanRepo.update(loan);
+
+  // 9. Notify member
+  await this.Notifier.send();
+
+  return {loan,fine};
+
 }

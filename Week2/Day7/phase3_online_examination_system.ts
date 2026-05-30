@@ -77,3 +77,45 @@
 // 8 pts  - Grading strategies properly abstracted (OCP + DIP)
 // 4 pts  - Anti-cheat rules composable (OCP + Composition)
 // 4 pts  - Composition root with prod/test wiring (DIP)
+
+abstract class BaseQuestion {
+  constructor(
+    public readonly id: string,
+    public readonly points: number,
+    public readonly difficultyLevel: number,
+    public readonly timeLimit: number,
+  ) {}
+}
+
+class MCQQuestion extends Question {
+  public readonly options: string[];
+  answer: string;
+}
+
+interface TFQuestion extends Question {
+  id: string;
+  answer: boolean;
+}
+
+interface CodingQuestion extends Question {}
+
+interface GradeResult {
+  score: number;
+  feedback: string;
+}
+
+interface GradingStrategy<T> {
+  grade(question: Question, answer: T): GradeResult;
+}
+
+class MCQGradeStrategy implements GradingStrategy<string> {
+  grade(question: Question, answer: string): GradeResult {}
+}
+
+class TrueFalseGradeStrategy implements GradingStrategy<boolean> {
+  grade(question: Question, answer: boolean): GradeResult {}
+}
+
+class CodeGradeStrategy implements GradingStrategy<string> {
+  grade(question: Question, answer: string): GradeResult {}
+}

@@ -87,17 +87,18 @@ abstract class BaseQuestion {
   ) {}
 }
 
-class MCQQuestion extends Question {
+class MCQQuestion extends BaseQuestion {
   public readonly options: string[];
-  answer: string;
+  private readonly answer: string;
 }
 
-interface TFQuestion extends Question {
-  id: string;
-  answer: boolean;
+class TFQuestion extends BaseQuestion {
+  private readonly answer: boolean;
 }
 
-interface CodingQuestion extends Question {}
+class CodingQuestion extends BaseQuestion {}
+
+class EssayQUestion extends BaseQuestion {}
 
 interface GradeResult {
   score: number;
@@ -105,17 +106,41 @@ interface GradeResult {
 }
 
 interface GradingStrategy<T> {
-  grade(question: Question, answer: T): GradeResult;
+  grade(question: BaseQuestion, answer: T): GradeResult;
 }
 
 class MCQGradeStrategy implements GradingStrategy<string> {
-  grade(question: Question, answer: string): GradeResult {}
+  grade(question: BaseQuestion, answer: string): GradeResult {}
 }
 
 class TrueFalseGradeStrategy implements GradingStrategy<boolean> {
-  grade(question: Question, answer: boolean): GradeResult {}
+  grade(question: BaseQuestion, answer: boolean): GradeResult {}
 }
 
 class CodeGradeStrategy implements GradingStrategy<string> {
-  grade(question: Question, answer: string): GradeResult {}
+  grade(question: BaseQuestion, answer: string): GradeResult {}
+}
+
+// Notification service
+interface Notifier<K, V> {
+  notify(key: K, value: V): Promise<void>;
+}
+class StudentNotifier implements Notifier<string, string> {
+  notify(email: string, msg: string): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class InstructorNotifier implements Notifier<Teacher, string> {
+  notify(teacher: Teacher, msg: string): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class ExamCreationService {
+  createExam(teacher: Teacher, questions: BaseQuestion[]) {}
+}
+
+class ExamAttendService {
+  attempExam(exam: Exam, student: Student) {}
 }

@@ -110,37 +110,109 @@ interface GradingStrategy<T> {
 }
 
 class MCQGradeStrategy implements GradingStrategy<string> {
-  grade(question: BaseQuestion, answer: string): GradeResult {}
+  grade(answer: string): GradeResult {}
 }
 
 class TrueFalseGradeStrategy implements GradingStrategy<boolean> {
-  grade(question: BaseQuestion, answer: boolean): GradeResult {}
+  grade(answer: boolean): GradeResult {}
 }
 
 class CodeGradeStrategy implements GradingStrategy<string> {
-  grade(question: BaseQuestion, answer: string): GradeResult {}
+  constructor(private AIGrader: AICodeReviewer) {}
+
+  grade(answer: string): GradeResult {}
 }
 
 // Notification service
-interface Notifier<K, V> {
-  notify(key: K, value: V): Promise<void>;
+interface NotificationStrategy {
+  send(recipient: string, message: string): Promise<void>;
 }
-class StudentNotifier implements Notifier<string, string> {
-  notify(email: string, msg: string): Promise<void> {
+
+class EmailNotificationStrategy implements NotificationStrategy {
+  send(recipient: string, message: string): Promise<void> {
     return Promise.resolve();
   }
 }
 
-class InstructorNotifier implements Notifier<Teacher, string> {
-  notify(teacher: Teacher, msg: string): Promise<void> {
+class DashboardNotificationStrategy implements NotificationStrategy {
+  send(recipient: string, message: string): Promise<void> {
     return Promise.resolve();
   }
 }
 
 class ExamCreationService {
-  createExam(teacher: Teacher, questions: BaseQuestion[]) {}
+  createExam(teacher: User, questions: BaseQuestion[]) {}
 }
 
 class ExamAttendService {
   attempExam(exam: Exam, student: Student) {}
+}
+
+enum UserType {
+  TEACHER = 'Teacher',
+  STUDENT = 'Student',
+}
+
+abstract class User {
+  private readonly name: string;
+  private readonly type: UserType;
+
+  getUserType(): UserType {
+    return this.type;
+  }
+}
+
+interface AntiCheatRule {
+  evaluate(session: ExamSession): AntiCheatResult;
+}
+
+class TabSwitchRule implements AntiCheatRule {
+  evaluate(session: ExamSession) {}
+}
+
+class CopyPasteRule implements AntiCheatRule {
+  evaluate(session: ExamSession) {}
+}
+
+class TimePerQuestionRule implements AntiCheatRule {
+  evaluate(session: ExamSession) {}
+}
+
+class AntiCheatEngine {
+  constructor(private readonly rules: AntiCheatRule[]) {}
+
+  evaluate(session: ExamSession) {
+    return this.rules.map((r) => r.evaluate(session));
+  }
+}
+
+class Exam {
+  constructor(
+    public readonly id: string,
+    public readonly questions: BaseQuestion[],
+    public readonly totalTimeLimit: number,
+    public readonly passingThreshold: number,
+  ) {}
+}
+
+class ExamSession {
+  public readonly startTimestamp: Date;
+  public readonly timeout = null;
+  constructor(
+    public readonly user: User,
+    public readonly exam: Exam,
+  ) {}
+
+  start() {
+    checkValidity();
+    startSession();
+    this.timeout = setTimeout(() => {
+      this.submit();
+    }, this.exam.totalTimeLimit);
+  }
+
+  submit() {
+    clearTimeout(this.timeout);
+    // update db entry for user
+  }
 }

@@ -124,22 +124,83 @@ class CodeGradeStrategy implements GradingStrategy<string> {
 }
 
 // Notification service
-interface NotificationStrategy {
-  send(recipient: string, message: string): Promise<void>;
+interface StudentNotifier {
+  examSubmitted(recipient: string, examTitle: string): Promise<void>;
+  resultAvailable(studentId: string, result: ExamResult): Promise<void>;
 }
 
-class EmailNotificationStrategy implements NotificationStrategy {
-  send(recipient: string, message: string): Promise<void> {
+interface DashboardNotifier {
+  newSubmission(
+    instructorId: string,
+    studentId: string,
+    examTitle: string,
+  ): Promise<void>;
+  antiCheatAlert(instructorId: string, alerts: AntiCheatAlert[]): Promise<void>;
+}
+
+class EmailStudentNotifier implements StudentNotifier {
+  examSubmitted(recipient: string, examTitle: string): Promise<void> {
+    console.log(
+      `${recipient} has successfully complete the exam: ${examTitle}`,
+    );
+    return Promise.resolve();
+  }
+
+  resultAvailable(studentId: string, result: ExamResult): Promise<void> {
+    console.log(`Result are avaiable for student id: ${studentId}`);
     return Promise.resolve();
   }
 }
 
-class DashboardNotificationStrategy implements NotificationStrategy {
-  send(recipient: string, message: string): Promise<void> {
-    return Promise.resolve();
+class DashboardInstructorNotifier implements DashboardNotifier {
+  newSubmission(
+    instructorId: string,
+    studentId: string,
+    examTitle: string,
+  ): Promise<void> {
+    console.log(`one submission recieved from student: ${studentId}`);
+  }
+
+  antiCheatAlert(
+    instructorId: string,
+    alerts: AntiCheatAlert[],
+  ): Promise<void> {
+    console.log('Anti Cheat ALerts');
   }
 }
 
+// Generic Repositor
+
+interface HasId {
+  readonly id: string;
+}
+
+interface Repository<T extends HasId> {
+  save(item: T): void;
+  findById(id: string): T | null;
+  findAll(): T[];
+  findWhere(predicate: (item: T) => boolean): T[];
+}
+
+class InMemoryRepository<T extends HasId> implements Repository<T> {
+  private store = new Map<string, T>();
+
+  save(item: T): void {
+    this.store.set(item.id, item);
+  }
+
+  findById(id: string): T | null {
+    return this.store.get(id) ?? null;
+  }
+
+  findAll(): T[] {
+    return [...this.store.values()];
+  }
+
+  findWhere(predicate: (item: T) => boolean): T[] {
+    return this.findAll().filter(predicate);
+  }
+}
 class ExamCreationService {
   createExam(teacher: User, questions: BaseQuestion[]) {}
 }

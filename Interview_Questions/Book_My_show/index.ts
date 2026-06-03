@@ -19,7 +19,7 @@ class Cinema {
   getShowsByMovie(movieId: string): Show[] {
     return this.halls.flatMap((hall) =>
       hall.shows.filter((show) => show.movie.id === movieId)
-    );
+    ); 
   }
 }
 

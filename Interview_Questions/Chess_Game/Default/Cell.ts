@@ -1,4 +1,4 @@
-import { Piece } from './PIeces';
+import {Piece} from './PIeces';
 
 export class Cell {
   piece: Piece | null;
@@ -15,7 +15,7 @@ export class Cell {
     return this.piece;
   }
 
-  setPiece(piece: Piece | null) {
-    return this.setPiece;
+  setPiece(piece: Piece | null): void {
+    this.piece = piece;
   }
 }

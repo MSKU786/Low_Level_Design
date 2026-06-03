@@ -1,32 +1,51 @@
-import { MovementStrategy } from './movmentStrategy';
-import { Cell } from './Cell';
+import {MovementStrategy} from './movmentStrategy';
+import {Cell} from './Cell';
 export class Board {
   private cells: Cell[][];
-  private static boardInstance: Board;
 
-  private constructor() {
+  constructor() {
     this.initializeBoard();
   }
 
-  initializeBoard() {
+  initializeBoard(): void {
     this.cells = new Array(8).fill(null).map(() => new Array(8).fill(null));
     for (let i = 0; i < 8; i++)
       for (let j = 0; j < 8; j++) this.cells[i][j] = new Cell(i, j);
   }
 
-  static getInstance(): Board {
-    if (this.boardInstance == null) {
-      this.boardInstance = new Board();
+  getCell(row: number, col: number): Cell | null {
+    if (row < 0 || row >= 8 || col < 0 || col >= 8) {
+      return null;
     }
-    return this.boardInstance;
+    return this.cells[row][col];
+  }
+
+  getCells(): Cell[][] {
+    return this.cells;
   }
 }
 
-class Game {
+export class Game {
   board: Board;
   p1: Player;
   p2: Player;
   status: GameStatus;
+  private currentPlayerIndex: number = 0;
+
+  constructor(player1: Player, player2: Player) {
+    this.board = new Board();
+    this.p1 = player1;
+    this.p2 = player2;
+    this.status = GameStatus.ACTIVE;
+  }
+
+  getCurrentPlayer(): Player {
+    return this.currentPlayerIndex === 0 ? this.p1 : this.p2;
+  }
+
+  switchTurn(): void {
+    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % 2;
+  }
 }
 
 export class Player {

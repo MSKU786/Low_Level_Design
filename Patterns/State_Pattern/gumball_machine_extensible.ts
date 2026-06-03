@@ -1,4 +1,4 @@
-// State interface
+ // State interface
 interface State {
   insertQuarter(): void;
   removeQuarter(): void;

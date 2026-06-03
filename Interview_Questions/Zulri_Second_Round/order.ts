@@ -108,6 +108,17 @@ class MarketOrderValidator extends BaseOrderValidator {
         super.validate(order)
     }
 }
+
+class StopLossValidator extends BaseOrderValidator {
+
+    validate(order: OrderRequest): void {
+        super.validate(order)
+
+        if (order.stopPrice == null || order.stopPrice <= 0) {
+            throw new Error("Stop price is required")
+        }
+    }
+}
 class DBRepository {
     blockOrder(order: OrderRequest) {
         
@@ -125,9 +136,41 @@ class DBRepository {
 
 
 class OrderValidatorFactory {
-    
+
+    static getValidator(type: OrderType): OrderValidator {
+
+        switch(type) {
+
+            case OrderType.MARKET:
+                return new MarketOrderValidator()
+
+            case OrderType.LIMIT:
+                return new LimitOrderValidator()
+
+            case OrderType.STOP_LOSS:
+                return new StopLossValidator()
+
+            default:
+                throw new Error("Unsupported order type")
+        }
+    }
 }
 
+class OrderRepository {
+
+    createOrder(order: OrderRequest): string {
+
+        const orderId = crypto.randomUUID()
+
+        console.log("Saving order in DB")
+
+        return orderId
+    }
+
+    cancelOrder(orderId: string): void {
+        console.log("Cancelling order")
+    }
+}
 
 class OrderService {
     constructor(private validator: OrderValidator)

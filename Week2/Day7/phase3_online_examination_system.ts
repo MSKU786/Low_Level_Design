@@ -247,6 +247,44 @@ class AntiCheatEngine {
   }
 }
 
+// Interface GradingStrategy
+
+interface GradingStrategy {
+  grade(question: BaseQuestion, answer: String): Promise<GradeResult>;
+}
+
+class MCQGrader implements GradingStrategy {
+  async grade(question: BaseQuestion, answer: String): Promise<GradeResult> {}
+}
+
+class TrueFalseGrader implements GradingStrategy {
+  async grade(question: BaseQuestion, answer: string) {}
+}
+
+// DIP depeneds on codeRunner interface not a concerete service
+class CodingGrader implements GradingStrategy {
+  constructor(private codeRunner: CodeRunnerService) {}
+
+  async grade(question: BaseQuestion, answer: string): Promise<GradeResult> {}
+}
+
+class EssayGrader implements GradingStrategy {
+  constructor(private aiGrader: AIGradingService) {}
+
+  async grade(question: BaseQuestion, answer: string): Promise<GradeResult> {}
+}
+
+interface CodeRunnerService {
+  run(
+    code: string,
+    testCases: { input: string; expectedOutput: string }[],
+  ): Promise<{
+    passedTest: number;
+    output: string;
+  }>;
+}
+
+interface AIGradingService {}
 class Exam {
   constructor(
     public readonly id: string,

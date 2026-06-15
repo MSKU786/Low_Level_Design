@@ -1,19 +1,44 @@
-Pattern 1: Singleton
+# Design Patterns — Week 3 Day 1
 
-Ensure a class has single exactly one instance and provides a global pont of access of it. Use it when mutiple
-instances would cause problem, like two database connection pools, two loggers writing to the same file, or two config manager with different state.
+## Pattern 1 — Singleton
 
-When to use: Data connection pools, logger instances, configuration managers, caches -- resources that are expensive to create and must be shared across the app.
+Description
 
-When NOT to use (anti-pattern) : Don't use SIgnle just to make somehting 'globally accessbile", if you are using it to avoid passing dependencies thorugh constructors. , tha'ts a DIP violation disguised as a patterns. Most' "Singletons" in codebases should actualy be regrular classes wired once int he componsition root.
+- Ensures a class has exactly one instance and provides a global point of access to it.
 
-Pattern 2: Factory Method
+When to use
 
-Defines an interface for creating objects but let's subclasses or a method decide which calss to instantiate. INStead of calling new ConcreteClass() direclty. You call a factory that return the right type based on input. The decoupes object creation from object usage.
+- Resource managers that are expensive or unsafe to duplicate, for example:
+  - Database connection pools
+  - Logger instances writing to the same file
+  - Configuration managers or in-memory caches
 
-When to use: When the exact type to create depends on runtime data(config, user input, file type). When you want to centralize object creation logic. When adding a new type should not required editing the consumer.
+When NOT to use (Anti-pattern)
 
-Factory Method vs Abstract Method vs Simple Factory:
-Simple Factory: A static method that creates object - not a GoF pattern but very common
-Factory Method: Subclasses override the creation method - actual GoF pattern
-Abstract Factory: A factory of Factories - creates families of related objects
+- Avoid using a singleton solely to make something "globally accessible." Doing so to avoid passing dependencies is a violation of the Dependency Inversion Principle (DIP).
+- Many so-called singletons are better modeled as regular classes instantiated once at the application's composition root.
+
+## Pattern 2 — Factory Method
+
+Description
+
+- Defines an interface for creating objects and lets subclasses or a factory method decide which concrete class to instantiate. Consumers call the factory instead of using `new` directly.
+
+When to use
+
+- When the concrete type depends on runtime data (configuration, user input, file type).
+- When you want to centralize or encapsulate object-creation logic.
+- When adding new types should not require changes to consumers.
+
+Variants and related patterns
+
+- Simple Factory: A static method that creates objects (not a GoF pattern, but commonly used).
+- Factory Method: Subclasses override a creation method (a GoF pattern).
+- Abstract Factory: Produces families of related objects (a factory of factories).
+
+## Notes
+
+- Prefer clear dependency wiring over abusing singletons for global access.
+- Use factories to keep creation concerns separate from business logic.
+
+---

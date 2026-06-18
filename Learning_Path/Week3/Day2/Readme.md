@@ -14,3 +14,5 @@ Example create("pawn") -> Pawn DarkFactory -> dark Button + dark input
 Ensures Right Subclass created All product in family are compatiable
 
 When to use: When yyou have mutlple objetcs that MUST be created together as a matching set --- UI themes, database drivers (connection + query builder + migration tool all for the same DB), cross platform components (IOS button + IOS input vs Andorid Button + Andorid input).
+
+When NOT to use: IF you only have one product type, Factory Method is simpler. If porudcts doint' need to mathc as a family spearted factiories are cleaner. Don't over-engineer , Absract Facctory adds complexity that only pays off thwne family consistency maaters

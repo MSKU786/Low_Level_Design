@@ -118,3 +118,43 @@ class IOSNotificationFactory implements NotificationUIFactory {
     return new IOSToast();
   }
 }
+
+class NotificationService {
+  constructor(private factory: NotificationUIFactory) {}
+
+  showSuccess(msg: string): void {
+    const toast = this.factory.createToast();
+    toast.show(msg, 10);
+  }
+
+  showError(msg: string) {
+    const Banner = this.factory.createBanner();
+    Banner.show(msg, BannerType.ERROR);
+  }
+
+  confirmAction(title: string, msg: string) {
+    const alert = this.factory.createAlert();
+    alert.show(title, msg, () => {console.log("success") return Promise.resolve()}, () => console.log("error"));
+  }
+}
+
+
+class NotificationRegistry {
+  private factories = new Map<string, NotificationUIFactory>();
+
+  register(name: string, factory: NotificationUIFactory): void {
+    this.factories.set(name, factory);
+  }
+
+  getFactory(name: string): NotificationUIFactory {
+    const factory = this.factories.get(name);
+    if (!factory) throw new Error(`Unknow Theme: ${name}`)
+    return factory;
+  }
+}
+
+
+const Notifier = new NotificationRegistry();
+Notifier.register('web', new WebNotificationFactory());
+Notifier.register('ios', new IOSNotificationFactory());
+

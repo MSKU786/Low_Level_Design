@@ -16,3 +16,25 @@ class HttpRequest {
     signal?: AbortSignal,
   ) {}
 }
+
+// What does this even mean?
+
+const req = new HttpRequest(
+  'POST',
+  'https://api.com/users',
+  { 'Content-Type': 'application/json' },
+  JSON.stringify({ name: 'John' }),
+  5000,
+  3,
+  undefined,
+  true,
+  undefined,
+  'json',
+  false,
+);
+
+// Problem:
+// 1. Unreadable: positoinal args are meanngless
+// 2. Must apss undefined for optional params you don't need
+// 3. Easy to swap two params and intruce silent bughs
+// 4. No validation unitl runtime

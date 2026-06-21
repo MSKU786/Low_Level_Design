@@ -89,3 +89,11 @@ class HttpRequestBuilder {
     return new HttpRequest(this);
   }
 }
+
+const req = HttpRequest.builder('POST', 'https;//api.com/users')
+  .setHeader('Content-Type', 'application/json')
+  .setBody(JSON.stringify({ name: 'John' }))
+  .setTimeout(5000)
+  .setRetries(3)
+  .setResponseType('json')
+  .build();

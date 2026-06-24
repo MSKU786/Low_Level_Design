@@ -95,4 +95,17 @@ class ValidationRuleBuilder {
   private _maxLength = 100000;
   private _matches = [];
   private _errors = [];
+  private _custom: Record<() => boolean, string>[] = [];
+
+  for() {}
+
+  required() {}
+
+  minLength() {}
+
+  maxLength() {}
+
+  matches() {}
+
+  custom() {}
 }

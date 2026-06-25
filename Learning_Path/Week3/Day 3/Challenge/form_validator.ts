@@ -88,33 +88,64 @@ const result3 = formValidator.validate({
 // 3. How should .custom() work?
 //    What interface/signature should a custom validator implement?
 
+type Rule = (value: string) => string | null;
+
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+interface FormValidationResult {
+  valud: boolean;
+  fieldErrors: Record<string, string[]>;
+}
+
+// Validation Rule
+
+class ValidationRule {
+  constructor(
+    public readonly fieldName: string,
+    private readonly rules: Rule[],
+  ) {
+    Object.freeze(this.rules);
+  }
+
+  validationRule(value: string): ValidationResult {
+    const errors: string[] = [];
+
+    for (const rule of this.rules) {
+      const error = rule(value);
+      if (error != null) {
+        errors.push(error);
+      }
+    }
+
+    return { valid: errors.length === 0, errors };
+  }
+}
+
 class ValidationRuleBuilder {
-  private _field : string;
-  private _required : boolean;
-  private _minLength : number;
-  private _maxLength : number;
-  private _matches : RegExp[] = [];
-  private _custom: ((value: string) => boolean)[] = [];
+  private rules: Rule[] = [];
 
+  private constructor(private readonly fileName: string) {}
 
-  constructor(private readonly field: string) {
-    this._field = field;
+  static for(field: string): ValidationRuleBuilder {
+    return new ValidationRuleBuilder(field);
   }
 
-  required(message: string) {
-    this._required = true;
+  required(message: string): this {
+    this.rules.push((value) => {
+      if (!value || value.trim().length === 0) return message;
+      return null;
+    });
     return this;
-    
   }
 
-  minLength(value: number, message: string) {
-    this._minLength = value;
-    this.
+  minLength(min: number, message): this {
+    this.rules.push((value) => {
+      if (value.length < min) return message;
+      return null;
+    });
+    return this;
   }
-
-  maxLength() {}
-
-  matches() {}
-
-  custom() {}
 }

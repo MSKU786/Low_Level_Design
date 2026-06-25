@@ -89,19 +89,28 @@ const result3 = formValidator.validate({
 //    What interface/signature should a custom validator implement?
 
 class ValidationRuleBuilder {
-  private _for = '';
-  private _required = false;
-  private _minLength = 0;
-  private _maxLength = 100000;
-  private _matches = [];
-  private _errors = [];
-  private _custom: Record<() => boolean, string>[] = [];
+  private _field : string;
+  private _required : boolean;
+  private _minLength : number;
+  private _maxLength : number;
+  private _matches : RegExp[] = [];
+  private _custom: ((value: string) => boolean)[] = [];
 
-  for() {}
 
-  required() {}
+  constructor(private readonly field: string) {
+    this._field = field;
+  }
 
-  minLength() {}
+  required(message: string) {
+    this._required = true;
+    return this;
+    
+  }
+
+  minLength(value: number, message: string) {
+    this._minLength = value;
+    this.
+  }
 
   maxLength() {}
 

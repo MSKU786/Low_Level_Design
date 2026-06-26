@@ -141,11 +141,86 @@ class ValidationRuleBuilder {
     return this;
   }
 
-  minLength(min: number, message): this {
+  minLength(min: number, message: string): this {
     this.rules.push((value) => {
       if (value.length < min) return message;
       return null;
     });
     return this;
+  }
+
+  maxLength(max: number, message: string): this {
+    this.rules.push((value) => {
+      if (value.length > max) return message;
+      return null;
+    });
+    return this;
+  }
+
+  matches(regex: RegExp, message: string) {
+    this.rules.push((value) => {
+      if (!regex.test(value)) return message;
+    });
+    return this;
+  }
+
+  custom(validator: (value: string) => boolean, message: string): this {
+    this.rules.push((value) => {
+      if (!validator(value)) return message;
+      return null;
+    });
+
+    return this;
+  }
+
+  build(): ValidationRule {
+    if (this.rules.length === 0) {
+      throw new Error(`No rules defined for fiedl ${this.fileName}`);
+    }
+
+    return new ValidationRule(this.fileName, [...this.rules]);
+  }
+}
+
+class FormValidator {
+  private constructor(
+    private readonly fieldRule: Map<string, ValidationRule>,
+  ) {}
+
+  static create(): FormValidatorBuilder {
+    return new FormValidatorBuilder();
+  }
+
+  validate(data: Record<string, string>): FormValidationResult {
+    const fieldErrors: Record<string, string[]> = {};
+    let allValid = true;
+
+    for (const [fieldName, rule] of this.fieldRule) {
+      const value = data[fieldName] ?? '';
+      const result = rule.validationRule(value);
+
+      if (!result.valid) {
+        fieldErrors[fieldName] = result.errors;
+        allValid = false;
+      }
+    }
+    return { valid: allValid, fieldErrors };
+  }
+}
+
+class FormValidatorResult {
+  private fields = new Map<string, ValidationRule>();
+
+  addField(rule: ValidationRule): this {
+    this.fields.set(rule.fieldName, rule);
+    return this;
+  }
+
+  build(): FormValidator {
+    if (this.fields.size === 0) {
+      throw new Error('Form must have at least one field');
+    }
+
+    return new (FormValidator as any)(new Map(this.fields));
   }
 }

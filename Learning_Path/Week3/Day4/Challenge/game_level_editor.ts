@@ -30,9 +30,9 @@
 //Modify one enemy's health without fecting others
 // Modify one platform's properties out affecting the prefab
 
-interface GameObject {
-  position: { x: number; y: number };
-  size: { w: number; y: number };
+interface GameObject extends Clonable<GameObject> {
+  position: Position;
+  size: Size;
   layer: number;
 }
 
@@ -40,17 +40,17 @@ interface Clonable<T> {
   clone(): T;
 }
 
-type position = { x: number; y: number };
-type size = { w: number; h: number };
+type Position = { x: number; y: number };
+type Size = { w: number; h: number };
 
 class Enemy implements GameObject, Clonable<Enemy> {
   constructor(
-    public position: { x: number; y: number },
-    public size: { w: number; h: number },
+    public position: Position,
+    public size: Size,
     public layer: number,
     public health: number,
     public speed: number,
-    public patrolPath: { x: number; y: number }[],
+    public patrolPath: Position[],
   ) {}
 
   clone(): Enemy {
@@ -65,4 +65,54 @@ class Enemy implements GameObject, Clonable<Enemy> {
   }
 }
 
-class Platform implements GameObject, Clonable<Platform> {}
+type Material = 'wood' | 'stone' | 'ice';
+
+class Platform implements GameObject, Clonable<Platform> {
+  position: Position;
+  size: Size;
+  layer: number;
+  material: Material;
+  friction: number;
+  breakable: boolean;
+
+  constructor(
+    position: Position,
+    size: Size,
+    layer: number,
+    material: Material,
+    friction: number,
+    breakable: boolean,
+  ) {
+    this.position = position;
+    this.size = size;
+    this.layer = layer;
+    this.material = material;
+    this.friction = friction;
+    this.breakable = breakable;
+  }
+
+  clone(): Platform {
+    return new Platform(
+      { x: this.position.x, y: this.position.y },
+      { w: this.size.w, h: this.size.h },
+      this.layer,
+      this.material,
+      this.friction,
+      this.breakable,
+    );
+  }
+}
+
+class PrefabRegistry {
+  private prefabs = new Map<string, GameObject>();
+
+  register(name: string, prefab: GameObject): void {
+    this.prefabs.set(name, prefab);
+  }
+
+  create(name: string): GameObject {
+    const prefab = this.prefabs.get(name);
+    if (!prefab) throw new Error(`Unknow prefab: ${name}`);
+    return prefab.clone();
+  }
+}

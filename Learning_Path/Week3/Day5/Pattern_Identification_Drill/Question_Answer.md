@@ -8,7 +8,7 @@
 | "Create based on type", "depends on input", "new types added"              | Type varies at runtime            | **Factory Method**   |
 | "Family of related objects", "must match", "themed", "cross-platform"      | Multiple products that must match | **Abstract Factory** |
 | "Complex object", "many optional parameters", "step by step", "fluent API" | Construction is complex           | **Builder**          |
-| "Clone", "template", "preset", "copy and customize"                        | Create from an existing object    | **Prototype**        |
+| "Clone", "template", "preset", "copy and customize"                        | Create from existing object       | **Prototype**        |
 
 ---
 
@@ -16,48 +16,19 @@
 
 ## Problem
 
-Your DevOps tool provisions cloud resources. Users specify:
+Your DevOps tool provisions cloud resources. Users specify a provider (**AWS**, **GCP**, **Azure**) and a resource type (**VM**, **Database**, **Storage Bucket**). Each provider has different APIs and configurations, but the tool should work identically regardless of which provider is selected.
 
-- Cloud Provider (**AWS**, **GCP**, **Azure**)
-- Resource Type:
-  - Virtual Machine (VM)
-  - Database
-  - Storage Bucket
-
-Each provider has different APIs and configurations, but the tool should work identically regardless of which provider is selected.
-
-### Important Constraint
-
-If a user selects **AWS**, **every resource created during that session must be an AWS resource**.
-
-❌ **Invalid**
-
-- AWS EC2 + GCP Cloud SQL
-
-✅ **Valid**
-
-- AWS EC2 + AWS RDS + AWS S3
-
----
+When a user selects **AWS**, **all resources created during that session must be AWS resources**—you can't mix an AWS VM with a GCP database.
 
 ## Pattern: **Abstract Factory**
 
 ### Why?
 
-Keywords:
+"All resources in a session must be from the same provider" → **family consistency**.
 
-- Family of related objects
-- Must match
-- Cross-platform
-- Themed objects
+Similar to the Dark/Light theme pattern, one factory produces a matching set of products.
 
-One factory creates a complete family of compatible objects.
-
-Switching from AWS to GCP only requires changing the factory—not every object creation call.
-
----
-
-## TypeScript Example
+Switching from AWS to GCP means switching one factory, not editing every resource creation call.
 
 ```typescript
 interface ResourceFactory {
@@ -94,7 +65,8 @@ class GCPFactory implements ResourceFactory {
   }
 }
 
-// Consumer doesn't know which provider is used.
+// Consumer doesn't know which provider.
+// Just uses the factory.
 class InfraProvisioner {
   constructor(private factory: ResourceFactory) {}
 
@@ -102,8 +74,7 @@ class InfraProvisioner {
     const vm = this.factory.createVM();
     const db = this.factory.createDatabase();
 
-    // Guaranteed:
-    // Both VM and Database belong to the same provider.
+    // Guaranteed: both are AWS or both are GCP.
   }
 }
 ```
@@ -118,15 +89,10 @@ A marketing team builds email campaigns.
 
 Each campaign has:
 
-### Required Fields
-
-- Recipients
-- Subject
-
-### Optional Fields
-
-- HTML body
-- Plain text body
+- Recipients (**required**)
+- Subject line (**required**)
+- HTML body (optional)
+- Plain text body (optional)
 - From name
 - Reply-to address
 - Scheduled send time
@@ -134,55 +100,22 @@ Each campaign has:
 - A/B test variants
 - Tags
 
-Most campaigns only use **4–5** of these fields.
+Most campaigns use only **4–5** of these fields.
 
-The marketing team frequently gets the constructor parameter order wrong.
-
----
+The marketing team frequently complains about getting the parameter order wrong.
 
 ## Pattern: **Builder**
 
 ### Why?
 
-Keywords:
-
 - Many optional parameters
-- Complex object construction
-- Step-by-step creation
-- Fluent API
 - Parameter order confusion
 
-Builder solves this by making object construction readable and self-documenting.
+Builder's sweet spot.
 
-Instead of:
+Fluent API makes each field labeled and self-documenting.
 
-```typescript
-new EmailCampaign(
-  recipients,
-  subject,
-  html,
-  undefined,
-  'Marketing Team',
-  undefined,
-  new Date(),
-);
-```
-
-Use:
-
-```typescript
-new EmailCampaignBuilder(recipients, subject)
-  .html('<h1>Hello</h1>')
-  .fromName('Marketing Team')
-  .schedule(new Date())
-  .build();
-```
-
-Each method clearly labels the field being set, making the code easier to read and maintain.
-
----
-
-## TypeScript Example
+Required fields go in the Builder's constructor, while optional fields are chained methods.
 
 ```typescript
 class EmailCampaign {
@@ -203,29 +136,102 @@ class EmailCampaign {
     this.replyToAddress = builder.replyToAddress;
     this.scheduledTime = builder.scheduledTime;
   }
+
+  static builder(recipients: string[], subject: string): EmailCampaignBuilder {
+    return new EmailCampaignBuilder(recipients, subject);
+  }
 }
+
+class EmailCampaignBuilder {
+  // Required (set in constructor)
+  readonly recipients: string[];
+  readonly subject: string;
+
+  // Optional (set via fluent methods)
+  html?: string;
+  textBody?: string;
+  fromName?: string;
+  replyToAddress?: string;
+  scheduledTime?: Date;
+
+  constructor(recipients: string[], subject: string) {
+    this.recipients = recipients;
+    this.subject = subject;
+  }
+
+  setHtml(html: string): this {
+    this.html = html;
+    return this;
+  }
+
+  setTextBody(textBody: string): this {
+    this.textBody = textBody;
+    return this;
+  }
+
+  setFromName(name: string): this {
+    this.fromName = name;
+    return this;
+  }
+
+  setReplyTo(address: string): this {
+    this.replyToAddress = address;
+    return this;
+  }
+
+  setScheduledTime(time: Date): this {
+    this.scheduledTime = time;
+    return this;
+  }
+
+  build(): EmailCampaign {
+    if (!this.html && this.textBody) {
+      throw new Error('Need at least HTML or text body');
+    }
+
+    return new EmailCampaign(this);
+  }
+}
+```
+
+### Usage
+
+```typescript
+const campaign = EmailCampaign.builder(['user@mail.com'], 'Welcome!')
+  .setHtml('<h1>Hello!</h1>')
+  .setFromName('Marketing Team')
+  .setScheduledTime(new Date('2024-12-25'))
+  .build();
 ```
 
 ---
 
-# Quick Interview Recognition Guide
+# Scenario 3: Multiplayer Game Server
 
-| You hear...                                 | Pattern              |
-| ------------------------------------------- | -------------------- |
-| Only one instance                           | **Singleton**        |
-| Create object based on runtime type         | **Factory Method**   |
-| Create a matching family of related objects | **Abstract Factory** |
-| Many optional parameters or Fluent API      | **Builder**          |
-| Clone existing object                       | **Prototype**        |
+## Problem
 
----
+Your game server manages player sessions. There must be exactly one `GameServer` instance running. Multiple game rooms can exist, but they all share the same server instance for matchmaking, player tracking, and leaderboards. If two `GameServer` instances existed, players could get different leaderboard data depending on which instance they hit.
 
-# Memory Tricks
+## Pattern: **Singleton**
 
-| Pattern              | Think             |
-| -------------------- | ----------------- |
-| **Singleton**        | Only one instance |
-| **Factory Method**   | Which type?       |
-| **Abstract Factory** | Which family?     |
-| **Builder**          | Too many options  |
-| **Prototype**        | Copy and modify   |
+### Why?
+
+"Exactly one instance", "shared state across all rooms" → textbook Singleton.
+
+Multiple instances would cause inconsistent leaderboard data.
+
+The instance must be `static` on the class, with a private constructor.
+
+```typescript
+interface IGameServer {
+  getLeaderboard(): LeaderboardEntry[];
+  matchmake(playerId: string): GameRoom;
+  trackPlayer(playerId: string): void;
+}
+
+class GameServer implements IGameServer {
+  private static instance: GameServer | null = null;
+
+  private leaderboard: LeaderboardEntry[] = [];
+  private players = new Map<string, PlayerSession>();
+```

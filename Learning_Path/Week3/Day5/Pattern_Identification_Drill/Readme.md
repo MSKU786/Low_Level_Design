@@ -42,3 +42,5 @@ Think...
 Create from existing object
 
 Pattern: Prototype
+
+Often Mutlple patterns combines: A Registry (FactorY) stores prototypes that are crated with builders. A singleton confimanager provides the settings. Real systems use 2-3 creationsal patterns togethre. The skill is knowing which one to reach for FIRST.

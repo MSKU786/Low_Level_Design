@@ -18,4 +18,46 @@
 
 // For each requirement (A-F), identify the creational pattern and explain in one sentence why.
 
-class Template Factory
+// Product Interface
+
+interface Header {
+  render(): string;
+}
+interface Section {
+  render(): string;
+}
+interface SkillBar {
+  reader(): string;
+}
+
+interface TemplateComponentFactory {
+  createHeader(name: string): Header;
+  createSection(title: string): Section;
+  createSkillBar(skil: string, level: number): SkillBar;
+}
+
+// Professional Family - all component match
+class ProfessionalHeader implements Header {
+  constructor(private name: string) {}
+  render(): string {
+    `<header class="professional"> ${this.name} </header>`;
+  }
+}
+
+class ProfessionalSection implements Section {}
+
+class ProfessionalSkillBar implements SkillBar {}
+
+class ProfessionalFactory implements TemplateComponentFactory {
+  createHeader(name: string): Header {
+    return new ProfessionalHeader(name);
+  }
+
+  createSection(title: string): Section {
+    return new ProfessionalSection(title);
+  }
+
+  createSkillBar(skil: string, level: number): SkillBar {
+    return new ProfessionalSkillBar(skil, level);
+  }
+}

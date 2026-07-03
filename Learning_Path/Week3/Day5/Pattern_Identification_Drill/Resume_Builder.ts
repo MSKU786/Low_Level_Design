@@ -112,12 +112,37 @@ class TechnicalFactory implements TemplateComponentFactory {
   }
 }
 
-class TemplateRegistry {
-  private creators = new Map<string, TemplateComponentFactory>();
+interface Clonable<T> {
+  clone(): T;
+}
 
-  register(method: string, creator: TemplateComponentFactory): void {
-    this.creators.set(method, creator);
+class ResumeTemplate implements Clonable<ResumeTemplate> {
+  constructor(
+    public name: string,
+    public factory: TemplateComponentFactory,
+    public sections: string[],
+    public styles: { font: string; color: string },
+  ) {}
+
+  clone(): ResumeTemplate {
+    return new ResumeTemplate(this.name, this.factory, [...this.sections], {
+      ...this.styles,
+    });
+  }
+}
+
+class TemplateRegistry {
+  private templates = new Map<string, ResumeTemplate>();
+
+  register(name: string, template: ResumeTemplate): Void {
+    this.templates.set(name, template);
   }
 
-  create(method: string) : 
+  create(name: string): ResumeTemplate {
+    const template = this.templates.get(name);
+
+    if (!template) throw new Error(`Unkonw Template: ${name}`);
+
+    return template.clone();
+  }
 }

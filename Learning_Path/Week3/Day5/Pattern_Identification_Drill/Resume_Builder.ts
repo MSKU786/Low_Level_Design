@@ -61,3 +61,63 @@ class ProfessionalFactory implements TemplateComponentFactory {
     return new ProfessionalSkillBar(skil, level);
   }
 }
+
+class CreativeHeader implements Header {
+  constructor(private name: string) {}
+  render(): string {
+    `<header class="creative"> ${this.name} </header>`;
+  }
+}
+
+class CreativeSection implements Section {}
+
+class CreativeSkillBar implements SkillBar {}
+
+class CreativeFactory implements TemplateComponentFactory {
+  createHeader(name: string): Header {
+    return new CreativeHeader(name);
+  }
+
+  createSection(title: string): Section {
+    return new CreativeSection(title);
+  }
+
+  createSkillBar(skil: string, level: number): SkillBar {
+    return new CreativeSkillBar(skil, level);
+  }
+}
+
+class TechnicalHeader implements Header {
+  constructor(private name: string) {}
+  render(): string {
+    `<header class="technical"> ${this.name} </header>`;
+  }
+}
+
+class TechnicalSection implements Section {}
+
+class TechnicalSkillBar implements SkillBar {}
+
+class TechnicalFactory implements TemplateComponentFactory {
+  createHeader(name: string): Header {
+    return new TechnicalHeader(name);
+  }
+
+  createSection(title: string): Section {
+    return new TechnicalSection(title);
+  }
+
+  createSkillBar(skil: string, level: number): SkillBar {
+    return new TechnicalSkillBar(skil, level);
+  }
+}
+
+class TemplateRegistry {
+  private creators = new Map<string, TemplateComponentFactory>();
+
+  register(method: string, creator: TemplateComponentFactory): void {
+    this.creators.set(method, creator);
+  }
+
+  create(method: string) : 
+}

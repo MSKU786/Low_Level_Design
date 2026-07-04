@@ -144,5 +144,6 @@ class TemplateRegistry {
     if (!template) throw new Error(`Unkonw Template: ${name}`);
 
     return template.clone();
+    n;
   }
 }

@@ -91,43 +91,63 @@ class OffroadCarFactory implements VehicleFactory {
   }
 }
 
+class VwhicleFactoryRegistry {
+  private factories = new Map<string, VehicleFactory>();
 
-interface Clonable<<T> {
-  clone(): T; 
-}
+  register(family: string, factory: VehicleFactory): void {
+    this.factories.set(family, factory);
+  }
 
+  get(family: string): VehicleFactory {
+    const factory = this.factories.get(family);
 
-class VehiclePrototype implements Clonable<VehiclePrototype> {
-  constructor(
-    public type: string,
-    public factory: VehicleFactory
-  ) {}
+    if (!factory) {
+      throw new Error(`Unkonw factory type ${factory}`);
+    }
 
-  clone(): VehiclePrototype {
-    return new VehiclePrototype(this.type, this.factory)
+    return factory;
   }
 }
 
-
-interface VehicleSpec{
+interface VehicleSpec {
   type: string;
   maxPassenger: number;
   cargoCapacity: number;
   basePrice: number;
 }
 
-
 class VehicleTypeRegistry {
   private specs = new Map<string, VehicleSpec>();
 
   register(type: string, spec: VehicleSpec): void {
-    this.specs.get(type, spec);
+    this.specs.set(type, spec);
   }
 
   get(type: string): VehicleSpec {
     const spec = this.specs.get(type);
-    if (!spec) 
-      throw new Error(`Unkonw Vehichle type: ${type}`)
+    if (!spec) throw new Error(`Unkonw Vehichle type: ${type}`);
     return spec;
+  }
+}
+
+class VehichleBuilder {
+  private specs?: VehicleSpec;
+  private factory?: VehicleFactory;
+  private color = 'white';
+  private features: string[];
+
+  constructor(
+    private vehicleTypeRegistry: VehicleTypeRegistry,
+    private factory: VwhicleFactoryRegistry,
+  ) {}
+
+  setType(type: string) {
+    this.specs = this.vehicleTypeRegistry.get(type);
+    return this;
+  }
+
+  setFactory(family: string): this {
+    this.factory = this.factory.get(family);
+    return this;
   }
 }

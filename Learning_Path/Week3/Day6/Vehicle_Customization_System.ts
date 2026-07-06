@@ -151,3 +151,41 @@ class VehichleBuilder {
     return this;
   }
 }
+
+class Vehichle {
+  constructor(
+    public readonly spec: VehicleSpec,
+    public readonly partFamily: string,
+    public readonly engine: Engine,
+    public readonly suspnesion: Suspension,
+    public readonly brakes: Brake,
+    public readonly tires: Tire,
+    public readonly color: string,
+    public readonly features: readonly string[],
+    public readonly pricing: number,
+  ) {}
+}
+
+interface Clonable<T> {
+  clone(): T;
+}
+
+class VehichleConfig implements Clonable<VehichleConfig> {
+  constructor(
+    public readonly name: string,
+    public type: string,
+    public partFamily: string,
+    public color: string,
+    public features: string[],
+  ) {}
+
+  clone(): VehichleConfig {
+    return new VehichleConfig(
+      this.name,
+      this.type,
+      this.partFamily,
+      this.color,
+      [...this.features],
+    );
+  }
+}

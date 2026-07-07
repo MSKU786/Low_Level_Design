@@ -29,6 +29,9 @@ Deliverables:
 
 */
 
+interface WorkspaceTemplate {
+  cloen(): Workspace;
+}
 interface RuntimeEnvironmentFactory {
   createRuntime(): Runtime;
   createPackageManager(): PackageManager;
@@ -120,4 +123,44 @@ class JavaRuntimeEnvironment implements RuntimeEnvironmentFactory {
   createPackageManager(): MavenPackageManager {
     return new MavenPackageManager();
   }
+}
+
+interface RuntimeSettings {
+  cpuCores: number;
+  memory: string;
+  disk: string;
+}
+
+class WorkspaceBuilder {
+  private readonly _name: string;
+  private readonly _template: WorkspaceTemplate;
+  private readonly runTimeSetting: RuntimeSettings;
+  private readonly environmentVariables: Record<string, string>[];
+  private readonly installedExtension: string[];
+  private readonly portForwardingRules: string[];
+  private readonly gitConfiguration: string[];
+
+  constructor(name, template) {}
+
+  setRuntimeSettings(): WorkspaceBuilder {
+    return this;
+  }
+
+  setEnvironmentVariables(): WorkspaceBuilder {
+    return this;
+  }
+
+  setInstalledExtension(): WorkspaceBuilder {
+    return this;
+  }
+
+  setPortForwardingRules(): WorkspaceBuilder {
+    return this;
+  }
+
+  setGitConfiguration(): WorkspaceBuilder {
+    return this;
+  }
+
+  build(): WorkSpace {}
 }

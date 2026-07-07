@@ -28,9 +28,26 @@ Deliverables:
 6. Composition root wiring the registries, factories, and singleton
 
 */
+interface Clonable<T> {
+  clone(): T;
+}
 
-interface WorkspaceTemplate {
-  cloen(): Workspace;
+class WorkSpaceTemplate {
+  constructor(
+    public readonly name: string,
+    public readonly runtimeEnvironment: string,
+    public extension: string[],
+    public runTimeSetting: RuntimeSettings,
+  ) {}
+
+  clone(): WorkSpaceTemplate {
+    return new WorkSpaceTemplate(
+      this.name,
+      this.runtimeEnvironment,
+      [...this.extension],
+      { ...this.runTimeSetting },
+    );
+  }
 }
 interface RuntimeEnvironmentFactory {
   createRuntime(): Runtime;
@@ -126,11 +143,28 @@ class JavaRuntimeEnvironment implements RuntimeEnvironmentFactory {
 }
 
 interface RuntimeSettings {
-  cpuCores: number;
-  memory: string;
-  disk: string;
+  cpuCores?: number;
+  memory?: string;
+  disk?: string;
 }
 
+class RuntimeEnvRegistry {
+  private runtimesMap = new Map<string, RuntimeEnvironmentFactory>();
+
+  register(env: string, runtime: RuntimeEnvironmentFactory) {
+    this.runtimesMap.set(env, runtime);
+  }
+
+  get(env: string): RuntimeEnvironmentFactory {
+    const runtime = this.runtimesMap.get(env);
+
+    if (!runtime) {
+      throw new Error(`Unknow factory type ${env}`);
+    }
+
+    return runtime;
+  }
+}
 class WorkspaceBuilder {
   private readonly _name: string;
   private readonly _template: WorkspaceTemplate;

@@ -28,27 +28,7 @@ Deliverables:
 6. Composition root wiring the registries, factories, and singleton
 
 */
-interface Clonable<T> {
-  clone(): T;
-}
 
-class WorkSpaceTemplate {
-  constructor(
-    public readonly name: string,
-    public readonly runtimeEnvironment: string,
-    public extension: string[],
-    public runTimeSetting: RuntimeSettings,
-  ) {}
-
-  clone(): WorkSpaceTemplate {
-    return new WorkSpaceTemplate(
-      this.name,
-      this.runtimeEnvironment,
-      [...this.extension],
-      { ...this.runTimeSetting },
-    );
-  }
-}
 
 interface RuntimeEnvironmentFactory {
   createRuntime(): Runtime;
@@ -168,15 +148,24 @@ class RuntimeEnvRegistry {
 }
 
 class WorkspaceBuilder {
-  private readonly _name: string;
-  private readonly _template: WorkspaceTemplate;
-  private readonly runTimeSetting: RuntimeSettings;
-  private readonly environmentVariables: Record<string, string>[];
-  private readonly installedExtension: string[];
-  private readonly portForwardingRules: string[];
-  private readonly gitConfiguration: string[];
+  private _name: string;
+  private _template: WorkspaceTemplate;
+  private runTimeSetting: RuntimeSettings;
+  private environmentVariables: Record<string, string> = {};
+  private installedExtension: string[];
+  private portForwardingRules: string[];
+  private gitConfiguration: string[];
+  private extensionFactory: ExtensionFactory;
+  private ideConfig: IIDEConfig;
+  private runtimeEnvironmentRegistry: RuntimeEnvRegistry
 
-  constructor(name, template) {}
+  constructor(runtimeEnvRegistrY: RuntimeEnvRegistry, 
+    extensionFactory: ExtensionFactory,
+    ideCOnfig: IIDEConfig) {
+      this.runtimeEnvironmentRegistry  = runtimeEnvRegistrY;
+      this.extensionFactory = extensionFactory;
+      this.ideConfig = ideCOnfig;
+    }
 
   setRuntimeSettings(): WorkspaceBuilder {
     return this;
@@ -232,5 +221,71 @@ class ExtensionRegistry {
       throw new Error(`Unknow factory extension ${name}`)
   
     return factory;
+  }
+}
+
+
+
+interface IIDEConfig {
+  fontSize: number; 
+  theme: string; 
+  keybindings: string;
+  telemetry: boolean;
+}
+
+class IDEConfig implements IIDEConfig {
+  private static instance:  IDEConfig | null = null;
+
+  fontSize: number = 14;
+  theme = "dark"; 
+  keybindings: string = "defualt";
+  telemetry: boolean = false;
+
+  private constructor() {}
+
+  static getInstance(): IDEConfig {
+    if (!IDEConfig.instance) {
+      IDEConfig.instance = new IDEConfig();
+    }
+
+    return IDEConfig.instance;
+  }
+}
+
+
+interface Clonable<T> {
+  clone(): T;
+}
+
+class WorkSpaceTemplate {
+  constructor(
+    public readonly name: string,
+    public readonly runtimeEnvironment: string,
+    public extension: string[],
+    public runTimeSetting: RuntimeSettings,
+  ) {}
+
+  clone(): WorkSpaceTemplate {
+    return new WorkSpaceTemplate(
+      this.name,
+      this.runtimeEnvironment,
+      [...this.extension],
+      { ...this.runTimeSetting },
+    );
+  }
+}
+
+
+class TemplateRegistry {
+  private templates = new Map<string, WorkSpaceTemplate>();
+
+  register(name: string, template: WorkSpaceTemplate) : Void {
+    this.templates.set(name, template);
+  }
+
+  get(name: string): WorkSpaceTemplate {
+    const template = this.templates.get(name);
+    if (!template) throw new Error(`Unknown Template: ${name}`)
+    return template.clone();  
   }
 }

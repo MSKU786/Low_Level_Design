@@ -49,6 +49,7 @@ class WorkSpaceTemplate {
     );
   }
 }
+
 interface RuntimeEnvironmentFactory {
   createRuntime(): Runtime;
   createPackageManager(): PackageManager;
@@ -165,6 +166,7 @@ class RuntimeEnvRegistry {
     return runtime;
   }
 }
+
 class WorkspaceBuilder {
   private readonly _name: string;
   private readonly _template: WorkspaceTemplate;
@@ -197,4 +199,38 @@ class WorkspaceBuilder {
   }
 
   build(): WorkSpace {}
+}
+
+interface ExtensionFactory {
+  installExtension(): Promise<void>;
+}
+
+class ThemeFactory implements ExtensionFactory {
+  installExtension(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class FormatterFactory implements ExtensionFactory {
+  installExtension(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+
+class ExtensionRegistry {
+  private extensionMap = new Map<string, ExtensionFactory>();
+
+  register(name: string, factory: ExtensionFactory) {
+    this.extensionMap.set(name, factory);
+  }
+
+  get(name: string): ExtensionFactory {
+    const factory = this.extensionMap.get(name):
+
+    if (!factory) 
+      throw new Error(`Unknow factory extension ${name}`)
+  
+    return factory;
+  }
 }

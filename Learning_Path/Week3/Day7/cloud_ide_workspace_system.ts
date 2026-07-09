@@ -338,9 +338,27 @@ class WorkspaceBuilder {
     const extensions: ExtensionFactory[]= [];
     for (const ext of this._extensionIds) {
       try {
-        const extension= this.extensionRegistry.register(ext.type,).
+        const extension= this.extensionRegistry.create(ext.type);
+        extensions.push(extension);
+      } catch{
+        throw new Error();
       }
     }
+
+    return new WorkSpaceTemplate(
+      this._name,
+      this_templateName,
+      runtime,
+      packageManager,
+      linter,
+      debbugger,
+      extensions,
+      {...this._resources},
+      {...this._envVars},
+      {...this._gitConfig},
+      this.ideConfig
+    )
+
 
   }
 }

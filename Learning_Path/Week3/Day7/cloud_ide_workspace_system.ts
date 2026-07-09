@@ -123,12 +123,6 @@ class JavaRuntimeEnvironment implements RuntimeEnvironmentFactory {
   }
 }
 
-interface RuntimeSettings {
-  cpuCores?: number;
-  memory?: string;
-  disk?: string;
-}
-
 class RuntimeEnvRegistry {
   private runtimesMap = new Map<string, RuntimeEnvironmentFactory>();
 
@@ -147,48 +141,6 @@ class RuntimeEnvRegistry {
   }
 }
 
-class WorkspaceBuilder {
-  private _name: string;
-  private _template: WorkspaceTemplate;
-  private runTimeSetting: RuntimeSettings;
-  private environmentVariables: Record<string, string> = {};
-  private installedExtension: string[];
-  private portForwardingRules: string[];
-  private gitConfiguration: string[];
-  private extensionFactory: ExtensionFactory;
-  private ideConfig: IIDEConfig;
-  private runtimeEnvironmentRegistry: RuntimeEnvRegistry
-
-  constructor(runtimeEnvRegistrY: RuntimeEnvRegistry, 
-    extensionFactory: ExtensionFactory,
-    ideCOnfig: IIDEConfig) {
-      this.runtimeEnvironmentRegistry  = runtimeEnvRegistrY;
-      this.extensionFactory = extensionFactory;
-      this.ideConfig = ideCOnfig;
-    }
-
-  setRuntimeSettings(): WorkspaceBuilder {
-    return this;
-  }
-
-  setEnvironmentVariables(): WorkspaceBuilder {
-    return this;
-  }
-
-  setInstalledExtension(): WorkspaceBuilder {
-    return this;
-  }
-
-  setPortForwardingRules(): WorkspaceBuilder {
-    return this;
-  }
-
-  setGitConfiguration(): WorkspaceBuilder {
-    return this;
-  }
-
-  build(): WorkSpace {}
-}
 
 interface ExtensionFactory {
   installExtension(): Promise<void>;
@@ -214,7 +166,7 @@ class ExtensionRegistry {
     this.extensionMap.set(name, factory);
   }
 
-  get(name: string): ExtensionFactory {
+  create(name: string, id: string): ExtensionFactory {
     const factory = this.extensionMap.get(name):
 
     if (!factory) 
@@ -288,4 +240,113 @@ class TemplateRegistry {
     if (!template) throw new Error(`Unknown Template: ${name}`)
     return template.clone();  
   }
+}
+
+
+class WorkspaceBuilder {
+  private _name: string;
+  private _templateName: string = "custom";
+  private _ecoSystem? : string;
+  private _extensionIds: {type: string; id: string}[] = [];
+  private _resources: RuntimeSettings = {
+    cpuCores: 2,
+    memory: 4,
+    disk: 2
+  } ;
+  private _envVars: Record<string, string> = {};
+  private _gitConfig : {repo?: string; branch?: string} = {}
+  private _portForwarding: {port: number; label: string}[] = [];
+  private extensionRegistry: ExtensionRegistry;
+  private ideConfig: IIDEConfig;
+  private runtimeEnvironmentRegistry: RuntimeEnvRegistry
+
+  constructor(runtimeEnvRegistrY: RuntimeEnvRegistry, 
+    extensionRegistry: ExtensionRegistry,
+    ideCOnfig: IIDEConfig) {
+      this.runtimeEnvironmentRegistry  = runtimeEnvRegistrY;
+      this.extensionRegistry = extensionRegistry;
+      this.ideConfig = ideCOnfig;
+    }
+
+  
+  static fromTemplate(
+    template: WorkSpaceTemplate,
+    runtimeEnvs: RuntimeEnvRegistry,
+    extensionRegistry: ExtensionRegistry,
+    ideConfig: IIDEConfig
+  ) {
+    const builder = new WorkspaceBuilder(runtimeEnvs, extensionRegistry, ideConfig)
+    builder._templateName = template.name;
+    builder._ecoSystem = template.runtimeEnvironment
+    builder._resources = {...template.runTimeSetting}
+
+    for (const extId of template.extension) {
+      builder._extensionIds.push({
+        type: "linter",
+        id: extId
+      })
+    }
+
+    return builder;
+  }
+
+  setName(name: string) : this {
+    this._name = name;
+    return this;
+  }
+  
+  setEcosytem(ecosystem: string): this {
+    this._ecoSystem = ecosystem;
+    return this;
+  }
+
+  setRuntimeSettings(): WorkspaceBuilder {
+    return this;
+  }
+
+  setEnvironmentVariables(): WorkspaceBuilder {
+    return this;
+  }
+
+  setInstalledExtension(): WorkspaceBuilder {
+    return this;
+  }
+
+  setPortForwardingRules(): WorkspaceBuilder {
+    return this;
+  }
+
+  setGitConfiguration(): WorkspaceBuilder {
+    return this;
+  }
+
+  build(): WorkSpace {
+    if (!this._name) {
+      throw new Error("Workspace name is required. Call .setName()")
+    }
+
+    if (!this._ecoSystem) {
+      throw new Error("Ecosystem is required. Call .setEcosystem() or use from TEmplate()")
+    }
+
+    const runtimeEnvironment = this.runtimeEnvironmentRegistry.get(this._ecoSystem);
+    const runtime = runtimeEnvironment.createRuntime();
+    const packageManager = runtimeEnvironment.createPackageManager();
+    const linter = runtimeEnvironment.createLinter();
+    const debbugger = runtimeEnvironment.createDebugger();
+
+    const extensions: ExtensionFactory[]= [];
+    for (const ext of this._extensionIds) {
+      try {
+        const extension= this.extensionRegistry.register(ext.type,).
+      }
+    }
+
+  }
+}
+
+interface RuntimeSettings {
+  cpuCores?: number;
+  memory?: number;
+  disk?: number;
 }

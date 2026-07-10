@@ -115,3 +115,82 @@ These values are:
 Loaded once during application startup.
 Shared across all services.
 */
+
+interface PCVendor {
+  installCPU(): CPU;
+  installMotherboard(): Motherboard;
+  installRAM(): RAM;
+  installCooler(): Cooler;
+}
+
+interface CPU {}
+
+interface Motherboard {}
+
+interface RAM {}
+
+interface Cooler {}
+
+class AMDCPU implements CPU {}
+class AMDMotherboard implements Motherboard {}
+class AMDRAM implements RAM {}
+class AMDCooler implements Cooler {}
+
+class IntelCPU implements CPU {}
+class IntelMotherboard implements Motherboard {}
+class IntelRAM implements RAM {}
+class IntelCooler implements Cooler {}
+
+class AMDVendor implements PCVendor {
+  installCPU(): AMDCPU {
+    return new AMDCPU();
+  }
+
+  installMotherboard(): AMDMotherboard {
+    return new AMDMotherboard();
+  }
+
+  installRAM(): AMDRAM {
+    return new AMDRAM();
+  }
+
+  installCooler(): AMDCooler {
+    return new AMDCooler();
+  }
+}
+
+class IntelVendor implements PCVendor {
+  installCPU(): IntelCPU {
+    return new IntelCPU();
+  }
+
+  installMotherboard(): IntelMotherboard {
+    return new IntelMotherboard();
+  }
+
+  installRAM(): IntelRAM {
+    return new IntelRAM();
+  }
+
+  installCooler(): IntelCooler {
+    return new IntelCooler();
+  }
+}
+
+class PCVendorRegistry {
+  private vendors: Map<string, PCVendor> = new Map<string, PCVendor>();
+
+  register(name: string, vendor: PCVendor): void {
+    this.vendors.set(name, vendor);
+  }
+
+  get(env: string): PCVendor {
+    const vendor = this.vendors.get(env);
+
+    if (!vendor) {
+      throw new Error(`Unknow vendor type ${env}`);
+    }
+
+    return vendor;
+  }
+}

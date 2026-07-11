@@ -209,7 +209,7 @@ interface Clonable<T> {
   clone(): T;
 }
 
-class WorkSpaceTemplate {
+class WorkSpaceTemplate implements Clonable<WorkSpaceTemplate> {
   constructor(
     public readonly name: string,
     public readonly runtimeEnvironment: string,

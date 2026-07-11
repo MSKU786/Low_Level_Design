@@ -116,7 +116,7 @@ Loaded once during application startup.
 Shared across all services.
 */
 
-interface PCVendor {
+interface ComponentFamilyFactory {
   installCPU(): CPU;
   installMotherboard(): Motherboard;
   installRAM(): RAM;
@@ -141,7 +141,7 @@ class IntelMotherboard implements Motherboard {}
 class IntelRAM implements RAM {}
 class IntelCooler implements Cooler {}
 
-class AMDVendor implements PCVendor {
+class AMDVendor implements ComponentFamilyFactory {
   installCPU(): AMDCPU {
     return new AMDCPU();
   }
@@ -159,7 +159,7 @@ class AMDVendor implements PCVendor {
   }
 }
 
-class IntelVendor implements PCVendor {
+class IntelVendor implements ComponentFamilyFactory {
   installCPU(): IntelCPU {
     return new IntelCPU();
   }
@@ -177,14 +177,17 @@ class IntelVendor implements PCVendor {
   }
 }
 
-class PCVendorRegistry {
-  private vendors: Map<string, PCVendor> = new Map<string, PCVendor>();
+class ComponentFamilyFactoryRegistry {
+  private vendors: Map<string, ComponentFamilyFactory> = new Map<
+    string,
+    ComponentFamilyFactory
+  >();
 
-  register(name: string, vendor: PCVendor): void {
+  register(name: string, vendor: ComponentFamilyFactory): void {
     this.vendors.set(name, vendor);
   }
 
-  get(env: string): PCVendor {
+  get(env: string): ComponentFamilyFactory {
     const vendor = this.vendors.get(env);
 
     if (!vendor) {
@@ -193,4 +196,88 @@ class PCVendorRegistry {
 
     return vendor;
   }
+}
+
+interface Clonable<T> {
+  clone(): T;
+}
+
+interface Storage {
+  capcity: number;
+  SDD?: number;
+  HDD?: number;
+}
+
+class PCConfig implements Clonable<PCConfig> {
+  constructor(
+    public type: string,
+    public componentFamily: string,
+    public storage: Storage,
+    public ram: number,
+    public gpu: string | null,
+    public os: string | null,
+    public peripherals: string[],
+    public waranty: string | null,
+  ) {}
+
+  clone(): PCConfig {
+    return new PCConfig(
+      this.type,
+      this.componentFamily,
+      { ...this.storage },
+      this.ram,
+      this.gpu,
+      this.os,
+      [...this.peripherals],
+      this.waranty,
+    );
+  }
+}
+
+interface PCSpecs {
+  RAMinGB: number;
+  StorageSlots: number;
+}
+
+interface PCTypeFactory {
+  buildPC(basePrice: number, pcSpecs: PCSpecs): Promise<void>;
+}
+
+class GamingPC implements PCTypeFactory {
+  buildPC(basePrice: number, pcSpecs: PCSpecs): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class WorkStation implements PCTypeFactory {
+  buildPC(basePrice: number, pcSpecs: PCSpecs): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class BudgetPC implements PCTypeFactory {
+  buildPC(basePrice: number, pcSpecs: PCSpecs): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+class PCFactoryRegistry {
+  private types = new Map<string, PCTypeFactory>();
+
+  register(type: string, PCTypeFactory: PCTypeFactory) {
+    this.types.set(type, PCTypeFactory);
+  }
+
+  create(type: string): PCTypeFactory {
+    let pcType = this.types.get(type);
+    if (!pcType) {
+      throw new Error(`Invalid PC ${type}`);
+    }
+
+    return pcType;
+  }
+}
+
+class PCBuilder {
+  private _type: string;
 }

@@ -280,4 +280,7 @@ class PCFactoryRegistry {
 
 class PCBuilder {
   private _type: string;
+  private _componentFactory: string;
+  private componentRegistry: ComponentFamilyFactoryRegistry;
+  private typeRegistry: PCFactoryRegistry;
 }

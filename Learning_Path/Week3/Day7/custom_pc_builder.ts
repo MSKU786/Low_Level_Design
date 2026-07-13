@@ -234,6 +234,20 @@ class PCConfig implements Clonable<PCConfig> {
   }
 }
 
+class PCConfigRegistry {
+  private pcConfig = new Map<string, PCConfig>();
+
+  register(name: string, config: PCConfig): void {
+    this.pcConfig.set(name, config);
+  }
+
+  get(name: string): PCConfig {
+    const config = this.pcConfig.get(name);
+    if (!config) throw new Error(`Uknow template: ${config}`);
+    return config.clone();
+  }
+}
+
 interface PCSpecs {
   RAMinGB: number;
   StorageSlots: number;
@@ -278,9 +292,53 @@ class PCFactoryRegistry {
   }
 }
 
+// ---------- The actual Product the Builder assembles ----------
+// This was missing entirely — the abstract factory produced CPU/Motherboard/
+// RAM/Cooler instances that had nowhere to live.
+interface AssembledComponents {
+  cpu: CPU;
+  motherboard: Motherboard;
+  ramSticks: RAM[];
+  cooler: Cooler;
+}
+
+class PC {
+  constructor(
+    public type: string,
+    public componentFamily: string,
+    public components: AssembledComponents,
+    public storage: Drive | null,
+    public gpu: string | null,
+    public os: string | null,
+    public peripherals: string[],
+    public warranty: string | null,
+    public price: number,
+    public specs: PCSpecs,
+  ) {}
+}
+
 class PCBuilder {
   private _type: string;
   private _componentFactory: string;
   private componentRegistry: ComponentFamilyFactoryRegistry;
   private typeRegistry: PCFactoryRegistry;
+
+  constructor(
+    componentRegistry: ComponentFamilyFactoryRegistry,
+    typeRegistry: PCFactoryRegistry,
+  ) {
+    this.componentRegistry = componentRegistry;
+    this.typeRegistry = typeRegistry;
+  }
+
+  static fromPCConfig(
+    pcCOnfig: PCConfig,
+    componentRegistry: ComponentFamilyFactoryRegistry,
+    typeRegistry: PCFactoryRegistry,
+  ) {
+    const builder = new PCBuilder(componentRegistry, typeRegistry);
+    builder._pcConfigName = pcCOnfig.name;
+    builder._type = pcCOnfig.type;
+    builder._componentFamily = pcCOnfig.componentFamily;
+  }
 }

@@ -322,23 +322,100 @@ class PCBuilder {
   private _componentFactory: string;
   private componentRegistry: ComponentFamilyFactoryRegistry;
   private typeRegistry: PCFactoryRegistry;
+  private familyType: PCTypeFactory;
+  private vendor: ComponentFamilyFactory;
+  private _storage: Storage;
+  private _ram: number;
+  private _gpu: string | null;
+  private _os: string | null;
+  private _peripherals: string[] = [];
+  private _warranty: string | null;
+  private _cpu: CPU;
+  private _motherboard: Motherboard;
+  private _ramStick: RAM;
+  private _cooler: Cooler;
 
   constructor(
+    type: string,
+    family: string,
     componentRegistry: ComponentFamilyFactoryRegistry,
     typeRegistry: PCFactoryRegistry,
   ) {
     this.componentRegistry = componentRegistry;
     this.typeRegistry = typeRegistry;
+
+    this.vendor = componentRegistry.get(family);
+    this._familyType = typeRegistry.create(type);
+    this._cpu = this.vendor.installCPU();
+    this._ramStick = this.vendor.installRAM();
+    this._motherboard = this.vendor.installMotherboard();
+    this._cooler = this.vendor.installCooler();
   }
 
   static fromPCConfig(
-    pcCOnfig: PCConfig,
+    pcConfig: PCConfig,
     componentRegistry: ComponentFamilyFactoryRegistry,
     typeRegistry: PCFactoryRegistry,
   ) {
     const builder = new PCBuilder(componentRegistry, typeRegistry);
-    builder._pcConfigName = pcCOnfig.name;
-    builder._type = pcCOnfig.type;
-    builder._componentFamily = pcCOnfig.componentFamily;
+    builder._pcConfigName = pcConfig.name;
+    builder._type = pcConfig.type;
+    builder._componentFamily = pcConfig.componentFamily;
+    builder._storage = { ...pcConfig.storage };
+    builder._ram = pcConfig.ram;
+    builder._gpu = pcConfig.gpu;
+    builder._os = pcConfig.os;
+    builder._peripherals = [...pcConfig.peripherals];
+    builder._warranty = pcConfig.waranty;
+  }
+
+  withStorage(storage: Drive): this {
+    this._storage = storage;
+    return this;
+  }
+
+  withGPU(gpu: string): this {
+    this._gpu = gpu;
+    return this;
+  }
+
+  withExtraRAM(ram: number): this {
+    this._ram += ram;
+    return this;
+  }
+
+  withPeripheral(peripheral: string): this {
+    this._peripherals.push(peripheral);
+    return this;
+  }
+
+  withOS(os: string): this {
+    this._os = os;
+    return this;
+  }
+
+  withWarranty(warranty: string): this {
+    this._warranty = warranty;
+    return this;
+  }
+
+  buildPC(): PC {
+    return new PC(
+      this._type,
+      this._componentFamily,
+      {
+        cpu: this._cpu,
+        motherboard: this._motherboard,
+        ram: this._ram,
+        cooler: this._cooler,
+      },
+      this._storage,
+      this._gpu,
+      this._os,
+      this._peripherals,
+      this._warranty,
+      this._typeProfile.basePrice,
+      specs,
+    );
   }
 }

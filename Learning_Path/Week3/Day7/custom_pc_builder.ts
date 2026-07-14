@@ -318,11 +318,8 @@ class PC {
 }
 
 class PCBuilder {
-  private _type: string;
-  private _componentFactory: string;
   private componentRegistry: ComponentFamilyFactoryRegistry;
   private typeRegistry: PCFactoryRegistry;
-  private familyType: PCTypeFactory;
   private vendor: ComponentFamilyFactory;
   private _storage: Storage;
   private _ram: number;

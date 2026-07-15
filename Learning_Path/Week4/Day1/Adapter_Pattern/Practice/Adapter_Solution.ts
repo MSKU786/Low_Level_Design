@@ -44,6 +44,35 @@ class StripeAdapter implements PaymentProcessor {
   }
 }
 
+class RazorAdapter implements PaymentProcessor {
+  private razorpay: RazorpaySDK;
+
+  constructor(apiKey: string) {
+    this.razorpay = new RazorpaySDK(apiKey);
+  }
+
+  async charge(
+    amount: number,
+    currency: string,
+  ): Promise<{ success: boolean; transactionId: string }> {
+    const order = await this.razorpay.createOrder({
+      amount: amount * 100,
+      currency,
+    });
+
+    const payment = await this.razorpay.capturePayment(order.order_id);
+
+    return {
+      success: payment.captured,
+      transactionId: payment.payment_id,
+    };
+  }
+
+  async refund(transactionId: string): Promise<{ success: boolean }> {
+    return { success: true };
+  }
+}
+
 class StripeSDK {
   charges = {
     async create(params: { amount: number; currency: string; source: string }) {
@@ -62,6 +91,19 @@ class StripeSDK {
   };
 }
 
+class RazorpaySDK {
+  async createOrder(params: { amount: number; currency: string }) {
+    return { order_id: 'order_xx', status: 'created' };
+  }
+
+  async capturePayment(order: string) {
+    return { payment_id: 'pya_xxx', captured: true };
+  }
+
+  async refund(transactionId: string) {
+    return { success: true };
+  }
+}
 // code do not know stripe exites
 
 class CheckoutService {

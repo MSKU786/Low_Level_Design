@@ -111,3 +111,4 @@ class CheckoutService {
 }
 
 const checkout = new CheckoutService(new StripeAdapter(STRIPE_KEY));
+const razorCheckout = new CheckoutService(new RazorAdapter(RAZOR_API_KEY));

@@ -22,3 +22,5 @@ When to use: A workflow requires coordinationg multiple subsystems. External con
 
 Facade vs Orchestrator- What's the difference?
 Almost nothing, The "orchestrator" pattern you've been using (OrderServie, BOokingServcie) is a Facade. The GoF call it facade. Clean Architecure calls it a Use Case. Domain-Driven Design calls it an Applicattion Service. Same Idea, differnt names.
+
+Key Insight: Adapter changes the INTERFACE (shape). Facade changes the COMPLEXITY (number of steps). Adapter wraps ONE thing. Facade wraps MANY things. They often work together - a Facade might use Adapter internallly for each external service.

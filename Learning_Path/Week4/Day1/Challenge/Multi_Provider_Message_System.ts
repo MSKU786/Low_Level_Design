@@ -109,3 +109,46 @@ class TwilioAdapter implements MessageService {
     return {id: response.sid, status: response.status}
   }
 }
+
+class SlackAdapter implements MessageService {
+  slackInstance: SlackWebhookSDK
+  constructor() {
+    this.slackInstance = new SlackWebhookSDK();
+  }
+
+
+  async send(to: string, body: string): Promise<{ id: string; status: string; }> {
+    const params = {
+      channel: "xyz",
+      text: body,
+      username: to
+    }
+    const response = await this.slackInstance.postMessages(params);
+    return {
+      id: response.ts,
+      status: response.ok === true ? "202" : "400"
+    }
+  }
+
+
+  async getStatus(messageId: string): Promise<string> {
+    return "delivered";
+  }
+}
+
+
+
+class MessageFacade {
+  constructor(
+    private slackAdapter: SlackAdapter,
+    private twilioAdapter: TwilioAdapter,
+    private sendGridAdapter: SendGridAdapters
+  ) {
+
+  }
+
+
+  sendEmail(to: string, subject: string, body: string) {
+    
+  }
+}

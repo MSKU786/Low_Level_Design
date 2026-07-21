@@ -136,3 +136,66 @@ class CachingDecorator implements DataRepository {
     return this.dataRepo.delete(key);
   }
 }
+
+
+class ValidationDecorator implements DataRepository {
+  constructor(private dataRepo: DataRepository) {}
+
+  private keyValidtor(key: string) {
+    return true;
+  }
+
+  private valueValidator(value: string) {
+    return true;
+  }
+
+  get(key: string): Promise<string> | null {
+    if (!this.keyValidtor(key)) {
+      throw new Error("Please enter a valid key")
+    }
+    console.log(`[Validator] Key ${key} successfully validated`)
+    return this.dataRepo.get(key);    
+  }
+
+  set(key: string, value: string): Promise<void> {
+    if (!this.keyValidtor(key)) {
+      throw new Error("Please enter a valid key")
+    }
+    console.log(`[Validator] Key ${key} successfully validated`)
+
+    if (!this.valueValidator(key)) {
+      throw new Error("Please enter a valid value size exceeded 1 MB")
+    }
+
+    console.log(`[Validator] Vallue ${value} successfully validated`)
+    return this.dataRepo.set(key, value);
+  }
+
+  delete(key: string): Promise<void> {
+    if (!this.keyValidtor(key)) {
+      throw new Error("Please enter a valid key")
+    }
+    console.log(`[Validator] Key ${key} successfully validated`)
+    return this.dataRepo.delete(key);
+  }
+} 
+
+
+class RetryDecorator implements DataRepository {
+  constructor(private dataRepo: DataRepository) {}
+
+  get(key: string): Promise<string> | null {
+    console.log(`[Logger] Get the key ${key}`)
+    return this.dataRepo.get(key);    
+  }
+
+  set(key: string, value: string): Promise<void> {
+    console.log(`[Logger] Set key ${key} with value ${value}`)
+    return this.dataRepo.set(key, value);
+  }
+
+  delete(key: string): Promise<void> {
+    console.log(`[Logger] Delete the key ${key}`)
+    return this.dataRepo.delete(key);
+  }
+}

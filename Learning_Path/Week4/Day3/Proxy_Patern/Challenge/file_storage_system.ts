@@ -104,15 +104,106 @@ interface FileStorage {
  * );
  */
 
-class S3FileStorage implements FileStorage {}
+class S3FileStorage implements FileStorage {
+  awsSDK: AwsSDK;
+
+  constructor(key: string, secret: string) {
+    this.awsSDK = new AwsSDK(key, secret);
+  }
+
+  read(path: string): Promise<string> {
+    console.log(path);
+    return Promise.resolve(path);
+  }
+
+  write(path: string, content: string): Promise<void> {
+    console.log(path, content);
+    return Promise.resolve();
+  }
+
+  delete(path: string): Promise<void> {
+    console.log(path);
+    return Promise.resolve();
+  }
+
+  exists(path: string): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+}
 
 class LaxyFileStorage implements FileStorage {
-  fileStorageInstance: FileStorage;
+  private realStorageInstance: S3FileStorage | null = null;
+  private key: string;
+  private value: string;
+
+  constructor(key: string, value: string) {
+    this.key = key;
+    this.value = value;
+  }
 
   getInstance() {
-    if (this.fileStorageInstance) {
-      return this.fileStorageInstance;
+    if (this.realStorageInstance) {
+      return this.realStorageInstance;
     }
-    return new FileSt();
+    return new S3FileStorage(this.key, this.value);
+  }
+
+  read(path: string): Promise<string> {
+    return this.getInstance().read(path);
+  }
+
+  write(path: string, content: string): Promise<void> {
+    return this.getInstance().write(path, content);
+  }
+
+  delete(path: string): Promise<void> {
+    console.log(path);
+    return this.getInstance().delete(path);
+  }
+
+  exists(path: string): Promise<boolean> {
+    return this.getInstance().exists(path);
+  }
+}
+
+interface User {
+  id: string;
+  role: 'reader' | 'writer' | 'admin';
+}
+
+class AccessControlProxy implements FileStorage {
+  constructor(
+    private inner: FileStorage,
+    private currentUser: User,
+  ) {}
+
+  read(path: string): Promise<string> {
+    return this.inner.read(path);
+  }
+
+  write(path: string, content: string): Promise<void> {
+    if (
+      this.currentUser.role === 'reader' ||
+      this.currentUser.role === 'writer'
+    ) {
+      throw new Error('User is not authorized to perform action');
+    }
+    return this.inner.write(path, content);
+  }
+
+  delete(path: string): Promise<void> {
+    console.log(path);
+
+    if (
+      this.currentUser.role === 'reader' ||
+      this.currentUser.role === 'writer'
+    ) {
+      throw new Error('User is not authorized to perform action');
+    }
+    return this.inner.delete(path);
+  }
+
+  exists(path: string): Promise<boolean> {
+    return this.inner.exists(path);
   }
 }

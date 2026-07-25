@@ -169,6 +169,7 @@ class LaxyFileStorage implements FileStorage {
 interface User {
   id: string;
   role: 'reader' | 'writer' | 'admin';
+  currentUsage: number;
 }
 
 class AccessControlProxy implements FileStorage {
@@ -182,10 +183,7 @@ class AccessControlProxy implements FileStorage {
   }
 
   write(path: string, content: string): Promise<void> {
-    if (
-      this.currentUser.role === 'reader' ||
-      this.currentUser.role === 'writer'
-    ) {
+    if (this.currentUser.role === 'reader') {
       throw new Error('User is not authorized to perform action');
     }
     return this.inner.write(path, content);
@@ -200,6 +198,36 @@ class AccessControlProxy implements FileStorage {
     ) {
       throw new Error('User is not authorized to perform action');
     }
+    return this.inner.delete(path);
+  }
+
+  exists(path: string): Promise<boolean> {
+    return this.inner.exists(path);
+  }
+}
+
+class QuotaProxy implements FileStorage {
+  private QuotaLimit = 100000;
+
+  constructor(
+    private inner: FileStorage,
+    private currentUser: User,
+  ) {}
+
+  read(path: string): Promise<string> {
+    return this.inner.read(path);
+  }
+
+  write(path: string, content: string): Promise<void> {
+    if (this.currentUser.currentUsage < this.QuotaLimit) {
+      return this.inner.write(path, content);
+    }
+
+    throw new Error('Quota Exceeded');
+  }
+
+  delete(path: string): Promise<void> {
+    console.log(path);
     return this.inner.delete(path);
   }
 

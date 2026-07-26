@@ -207,11 +207,9 @@ class AccessControlProxy implements FileStorage {
 }
 
 class QuotaProxy implements FileStorage {
-  private QuotaLimit = 100000;
-
   constructor(
     private inner: FileStorage,
-    private currentUser: User,
+    private quota: number,
   ) {}
 
   read(path: string): Promise<string> {
@@ -219,11 +217,11 @@ class QuotaProxy implements FileStorage {
   }
 
   write(path: string, content: string): Promise<void> {
-    if (this.currentUser.currentUsage < this.QuotaLimit) {
-      return this.inner.write(path, content);
+    if (content.length > this.quota) {
+      throw new Error('Quota Exceeded');
     }
 
-    throw new Error('Quota Exceeded');
+    return this.inner.write(path, content);
   }
 
   delete(path: string): Promise<void> {

@@ -58,8 +58,6 @@ class Connect4Game {
 
     this.switchPlayer();
   }
-
-  private checkWinner(playerInput) {}
 }
 
 enum GameState {
@@ -87,15 +85,48 @@ class Player {
 
 class Board {
   board = new Array(7).fill(null).map(() => new Array(6));
-  updateBoard() {
-    try {
-      this.validate(i);
-    } catch (e) {
-      throw new Error(e.msg);
+  dropPiece(i: number, color: Color) {
+    let validation = this.validateMove(i);
+
+    if (!validation.isValid) {
+      return validation;
     }
+
+    let row = this.board.findIndex((row) => row[i] === '');
+
+    this.board[row][i] = color;
+
+    return {
+      isValid: true,
+      error: null,
+      row: row,
+    };
   }
 
-  private validate(i) {}
+  private validateMove(i) {
+    let isValid = true;
+
+    if (i < 0 || i > 7) {
+      isValid = false;
+      return {
+        isValid: false,
+        error: 'Invalid Column',
+      };
+    }
+
+    if (this.board[0][i] !== '') {
+      isValid = false;
+      return {
+        isValid: false,
+        error: 'Column is full',
+      };
+    }
+
+    return {
+      isValid: true,
+      error: null,
+    };
+  }
 }
 
 function main() {

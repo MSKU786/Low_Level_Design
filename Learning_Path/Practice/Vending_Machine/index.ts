@@ -1,4 +1,10 @@
-class VendingMachine {}
+class VendingMachineContext {
+  state: State;
+
+  setState(state: State) {}
+
+  request(): void;
+}
 
 class Order {
   product: Product;
@@ -19,47 +25,21 @@ enum MACHINE_STATES {
 }
 
 interface State {
-  updateState(): void;
-  pickProduct(product): void;
-  acceptMoney(amount: number): void;
-  cancelOrder(): void;
+  handleRequest(): void;
 }
 
-
-
-class ProductPicker implements State {
-  updateState(): void {
-    
-  }
-
-  pickProduct(product: any): void {
-    
-  }
-
-  acceptMoney(amount: number): void {
-    return;
-  }
-
-  cancelOrder(): void {
-    return;
-  }
+class ReadyState implements State {
+  handleRequest(): void {}
 }
 
+class ProductSelectedState implements State {
+  handleRequest(): void {}
+}
 
-class InsertMoney implements State {
-  updateState(): void {
-    this.state = 
-  }
+class PaymentPendingState implements State {
+  handleRequest(): void {}
+}
 
-  pickProduct(product: any): void {
-    return;
-  }
-
-  acceptMoney(amount: number): void {
-    
-  }
-
-  cancelOrder(): void {
-    this.updateState();
-  }
+class OutofStockState implements State {
+  handleRequest(): void {}
 }

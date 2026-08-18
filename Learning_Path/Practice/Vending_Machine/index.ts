@@ -1,19 +1,23 @@
 class Order {
   product: Product;
   quantity: number;
-  recievedAmount: number;
-  returnAmount: number;
+  amountPaid: number;
+
+  constructor(product: Product, quanity: number) {
+    this.product = product;
+    this.quantity = quanity
+    this.amountPaid = 0;
+  }
 
   addAmount(amount: number): void {
-    this.recievedAmount += amount;
+    this.amountPaid += amount;
   }
 }
 
 interface State {
-  setProduct(position: number, quantity: number): Order;
-  moneyInserted(amount: number): void;
-  cancelOrder(): void;
-  dispenseAndRefund(): void;
+  selectProduct(machine: VendingMachine, productId: string, quantity: number): void ;
+  insertMoney(machine: VendingMachine, amount: number): void;
+  cancelTransaction(machine: VendingMachine): void;
 }
 
 class ReadyStatee implements State {
@@ -89,21 +93,50 @@ class OutofStockState implements State {
 }
 
 class VendingMachine {
-  state: State;
+  private state: State;
+  products: Product[] = [];
+  order: Order | null = null;
 
-  constructor() {
-    this.state = new ReadyStatee();
+  constructor(products: Product[]) {
+    this.products = products;
+    this.state = new IdleState();
   }
 
-  setProduct() {}
+  selectProduct(productId: string, quantity: number) {
+    this.state.selectProduct(this, productId, quantity);
+  }
 
-  insertMoney() {}
+  insertMoney(amount: number) {
+    this.state.insertMoney(this, amount);
+  }
 
-  setState() {}
+  processOrder(): void {
+    if (this.order!.amountPaid < this.order!.product.price * this.order!.quantity {
+      throw new Error("Insufficient Funds");
+    }
 
-  cancelOrder() {}
+    console.log(`Dispensing ${this.order!.product.name} ${this.order!.quantity} times`);
+    this.order!.amountPaid -= this.order!.product.price * this.order!.quantity;
+    this.order = null;
+    this.setState(new IdleState());
+    
+  }
 
-  dispenseAndRefund() {}
+  setState(state: State) {
+    this.state = state;
+  }
+
+  cancelOrder(): void {
+    console.log(`Transaction cancelled`)
+    this.issueRefund();
+    this.order = null;
+    this.setState(new IdleStte());
+  }
+
+  private issueRefund() : void {
+    console.log(`Refunded ${this.order!.amountPaid} Dollars`)
+    this.order!.amountPaid = 0;
+  }
 }
 
 const machine = new VendingMachine();

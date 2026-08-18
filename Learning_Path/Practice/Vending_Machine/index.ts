@@ -20,77 +20,48 @@ interface State {
   cancelTransaction(machine: VendingMachine): void;
 }
 
-class ReadyStatee implements State {
-  setProduct(position: number, quantity: number): Order {
-    return new Order();
+class IdleState implements State {
+  selectProduct(machine: VendingMachine, productId: string, quantity: number): void {
+    const product = machine.products.find(p => p.id === productId);
+    if (!product) {
+      throw new Error("Product not found")
+    }
+    console.log(`Select ${product.name} ${quantity} times`)
+    machine.order =  new Order(product, quantity);
+    machine.setState(new AcceptMoneyState() )
   }
 
-  moneyInserted(amount: number): void {
-    throw new Error('Wrong Action');
+  insertMoney(machine: VendingMachine, amount: number): void {
+    throw new Error("Invalid action")
   }
 
-  cancelOrder(): void {
-    throw new Error('Wrong Action');
-  }
-
-  dispenseAndRefund(): void {
-    throw new Error('Wrong Action');
+  cancelTransaction(machine: VendingMachine): void {
+    machine.cancelOrder();
   }
 }
 
-class ProductSelectedState implements State {
-  setProduct(position: number, quantity: number): Order {
-    return new Order();
+
+class AcceptMoneyState implements State {
+  selectProduct(machine: VendingMachine, productId: string, quantity: number): void {
+    throw new Error("Wrong actions")
   }
 
-  moneyInserted(amount: number): void {
-    throw new Error('Wrong Action');
+  insertMoney(machine: VendingMachine, amount: number): void {
+    console.log(`Inserted ${amount} dollars`);
+    machine.order!.amountPaid += amount;
+    if (machine.order!.amountPaid + amount > machine.order!.product.price * machine.order!.quantity) {
+      machine.processOrder();
+    }
   }
 
-  cancelOrder(): void {
-    throw new Error('Wrong Action');
-  }
-
-  dispenseAndRefund(): void {
-    throw new Error('Wrong Action');
+  cancelTransaction(machine: VendingMachine): void {
+    machine.cancelOrder();
   }
 }
 
-class PaymentPendingState implements State {
-  setProduct(position: number, quantity: number): Order {
-    return new Order();
-  }
 
-  moneyInserted(amount: number): void {
-    throw new Error('Wrong Action');
-  }
 
-  cancelOrder(): void {
-    throw new Error('Wrong Action');
-  }
 
-  dispenseAndRefund(): void {
-    throw new Error('Wrong Action');
-  }
-}
-
-class OutofStockState implements State {
-  setProduct(position: number, quantity: number): Order {
-    return new Order();
-  }
-
-  moneyInserted(amount: number): void {
-    throw new Error('Wrong Action');
-  }
-
-  cancelOrder(): void {
-    throw new Error('Wrong Action');
-  }
-
-  dispenseAndRefund(): void {
-    throw new Error('Wrong Action');
-  }
-}
 
 class VendingMachine {
   private state: State;

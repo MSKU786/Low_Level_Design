@@ -1,13 +1,16 @@
 class Book {
   private title: string;
-  private publicationYear: string;
+  private publicationYear: number;
   private author: string;
-  copiesAvailable: number;
 
-  constructor
+  constructor(title: string, author: string, publicationYear: number) {
+    this.title = title;
+    this.author = author;
+    this.publicationYear = publicationYear;
+  }
 }
 
-class BookCOpy {
+class BookCopy {
   private book: Book;
   private isAvailble: boolean;
   private id: string;
@@ -22,7 +25,7 @@ class BookCOpy {
     return this.isAvailble;
   }
 
-  private setAvailablity(isAvailble: boolean) : void {
+  private setAvailablity(isAvailble: boolean): void {
     this.isAvailble = isAvailble;
   }
 
@@ -31,53 +34,72 @@ class BookCOpy {
   }
 
   return(): void {
-    this.setAvailablity(true)
+    this.setAvailablity(true);
   }
 }
-
 
 class User {
   private name: string;
   private email: string;
   private idCard: string;
-  private borrowedBookCopies: BookCOpy[] = [];
+  private borrowedBookCopies: BookCopy[] = [];
 
   constructor(name: string, emeail: string, idCard: string) {
     this.name = name;
     this.email = emeail;
-    this.idCard = idCard
+    this.idCard = idCard;
   }
 
   getName(): string {
     return this.name;
   }
 
-  borrowBook(bookCOpy: BookCOpy) : void {
-    if (this.borrowedBookCopies.length >=3 ) {
-      throw new Error("You have reached the maximum number of books you can borrow")
+  borrowBook(BookCopy: BookCopy): void {
+    if (this.borrowedBookCopies.length >= 3) {
+      throw new Error(
+        'You have reached the maximum number of books you can borrow',
+      );
     }
 
-    bookCOpy.borrow();
-    this.borrowedBookCopies.push(bookCOpy);
-  
+    BookCopy.borrow();
+    this.borrowedBookCopies.push(BookCopy);
   }
 
-
-  returnBook(bookCopyId: string) {
-    this.borrowedBookCopies = this.borrowedBookCopies.filter(b => b.id != bookCopyId) ;
+  returnBook(BookCopyId: string) {
+    this.borrowedBookCopies = this.borrowedBookCopies.filter(
+      (b) => b.id != BookCopyId,
+    );
   }
 
-  getBorrowBooks(): BookCOpy[] {
+  getBorrowBooks(): BookCopy[] {
     return this.borrowedBookCopies;
   }
 }
 
-
 class BookRecord {
   id: string;
-  issueDate: string;
-  constructor(private userId: string, private bookCopyId: string) {
-    this.issueDate = Date.now();
+  issuedDate: Date;
+  returnDate: Date | null;
 
+  constructor(
+    private userId: string,
+    private BookCopyId: string,
+  ) {
+    this.id = crypto.randomUUID();
+    this.issuedDate = new Date();
+    this.returnDate = null;
   }
+
+  getIssuedDate(): Date | null {
+    return this.issuedDate;
+  }
+
+  setReturnDate(returnDate: Date): void {
+    this.returnDate = returnDate;
+  }
+}
+
+class LibraryOrchestrator {
+  private books: Book[] = [];
+  private bookCopies: BookCopy[] = [];
 }

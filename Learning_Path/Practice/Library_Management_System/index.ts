@@ -8,6 +8,18 @@ class Book {
     this.author = author;
     this.publicationYear = publicationYear;
   }
+
+  getTitle(): string {
+    return this.title;
+  }
+
+  getPublicationYear(): number {
+    return this.publicationYear;
+  }
+
+  getAuthor(): string {
+    return this.author;
+  }
 }
 
 class BookCopy {
@@ -23,6 +35,10 @@ class BookCopy {
 
   checkAvailablity(): boolean {
     return this.isAvailble;
+  }
+
+  getBook() {
+    return this.book;
   }
 
   private setAvailablity(isAvailble: boolean): void {
@@ -102,4 +118,34 @@ class BookRecord {
 class LibraryOrchestrator {
   private books: Book[] = [];
   private bookCopies: BookCopy[] = [];
+
+  searchBook(keyword: string): Book | null {
+    return (
+      this.books.find(
+        (b) =>
+          b.getTitle().includes(keyword) ||
+          b.getPublicationYear() == parseInt(keyword) ||
+          b.getAuthor().includes(keyword),
+      ) || null
+    );
+  }
+
+  borrowBook(keyword: string, user: User): void {
+    const book = this.searchBook(keyword);
+
+    if (!book) {
+      throw new Error('No book found with the keyword');
+    }
+
+    const copy = this.bookCopies.find(
+      (copy) => copy.getBook() == book && copy.checkAvailablity(),
+    );
+
+    if (!copy) {
+      throw new Error('No Copy found with the keyword');
+    }
+
+    if (user.getBorrowBooks().length < 3) {
+    }
+  }
 }

@@ -52,6 +52,10 @@ class BookCopy {
   return(): void {
     this.setAvailablity(true);
   }
+
+  getId() {
+    return this.id;
+  }
 }
 
 class User {
@@ -90,9 +94,13 @@ class User {
   getBorrowBooks(): BookCopy[] {
     return this.borrowedBookCopies;
   }
+
+  getIdCard(): string {
+    return this.idCard;
+  }
 }
 
-class BookRecord {
+class BorrowRecord {
   id: string;
   issuedDate: Date;
   returnDate: Date | null;
@@ -146,6 +154,13 @@ class LibraryOrchestrator {
     }
 
     if (user.getBorrowBooks().length < 3) {
+      throw new Error('User already exceeds the borrow limit');
     }
+
+    const borrow_record = new BookRecord(user.getIdCard(), copy.getId());
+    copy.borrow();
+    user.borrowBook(copy);
+
+    return borrow_record;
   }
 }

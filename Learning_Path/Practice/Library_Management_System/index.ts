@@ -7,7 +7,12 @@ class Book {
 
   copies: BookCopy[] = [];
 
-  constructor(title: string, author: string, publicationYear: number, copies: BookCopy[]) {
+  constructor(
+    title: string,
+    author: string,
+    publicationYear: number,
+    copies: BookCopy[],
+  ) {
     this.title = title;
     this.author = author;
     this.publicationYear = publicationYear;
@@ -28,7 +33,7 @@ class Book {
     return this.author;
   }
 
-  addCopy(copy: BookCopy) : void {
+  addCopy(copy: BookCopy): void {
     this.copies.push(copy);
     this.totalCopies++;
     this.availableCopies++;
@@ -74,13 +79,13 @@ class BookCopy {
 class User {
   private name: string;
   private email: string;
-  private idCard: string;
+  private id: string;
   private borrowedBookCopies: BookCopy[] = [];
 
-  constructor(name: string, emeail: string, idCard: string) {
+  constructor(name: string, emeail: string, id: string) {
     this.name = name;
     this.email = emeail;
-    this.idCard = idCard;
+    this.id = id;
   }
 
   getName(): string {
@@ -108,8 +113,8 @@ class User {
     return this.borrowedBookCopies;
   }
 
-  getIdCard(): string {
-    return this.idCard;
+  getid(): string {
+    return this.id;
   }
 }
 
@@ -120,7 +125,7 @@ class BorrowRecord {
 
   constructor(
     private userId: string,
-    private BookCopyId: string,
+    private bookCopyId: string,
   ) {
     this.id = crypto.randomUUID();
     this.issuedDate = new Date();
@@ -134,12 +139,20 @@ class BorrowRecord {
   setReturnDate(returnDate: Date): void {
     this.returnDate = returnDate;
   }
+
+  getBookCopyId() {
+    return this.bookCopyId;
+  }
+
+  getUserId(): string {
+    return this.userId;
+  }
 }
 
 class LibraryOrchestrator {
   private books: Book[] = [];
   private bookCopies: BookCopy[] = [];
-  private Users: User[]= [];
+  private Users: User[] = [];
   private borrowRecords: BorrowRecord[] = [];
 
   searchBook(keyword: string): Book | null {
@@ -172,17 +185,39 @@ class LibraryOrchestrator {
       throw new Error('User already exceeds the borrow limit');
     }
 
-    const borrow_record = new BorrowRecord(user.getIdCard(), copy.getId());
+    const borrow_record = new BorrowRecord(user.getid(), copy.getId());
     copy.borrow();
     user.borrowBook(copy);
 
     return borrow_record;
   }
 
-
   returnBook(borrowRecord: BorrowRecord): number {
     let fine = 0;
 
-    const bookCopy = this.books.find(book => book.)
+    const bookCopy = this.bookCopies.find(
+      (book) => book.getId() === borrowRecord.getBookCopyId(),
+    );
+
+    if (!bookCopy) {
+      throw new Error('Book Copy not found');
+    }
+
+    const user = this.Users.find(
+      (user) => user.getid() === borrowRecord.getUserId(),
+    );
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (borrowRecord.getReturnDate() !== null) {
+      throw new Error('Book Already returned');
+    }
+
+    bookCopy.return();
+    user.returnBook(bookCopy.getBook());
+    borrowRecord.setReturnDate(new Date());
+    return fine;
   }
 }

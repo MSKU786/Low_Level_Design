@@ -2,11 +2,18 @@ class Book {
   private title: string;
   private publicationYear: number;
   private author: string;
+  private totalCopies: number;
+  private availableCopies: number;
 
-  constructor(title: string, author: string, publicationYear: number) {
+  copies: BookCopy[] = [];
+
+  constructor(title: string, author: string, publicationYear: number, copies: BookCopy[]) {
     this.title = title;
     this.author = author;
     this.publicationYear = publicationYear;
+    this.copies = copies;
+    this.totalCopies = copies.length;
+    this.availableCopies = copies.length;
   }
 
   getTitle(): string {
@@ -19,6 +26,12 @@ class Book {
 
   getAuthor(): string {
     return this.author;
+  }
+
+  addCopy(copy: BookCopy) : void {
+    this.copies.push(copy);
+    this.totalCopies++;
+    this.availableCopies++;
   }
 }
 
@@ -126,6 +139,8 @@ class BorrowRecord {
 class LibraryOrchestrator {
   private books: Book[] = [];
   private bookCopies: BookCopy[] = [];
+  private Users: User[]= [];
+  private borrowRecords: BorrowRecord[] = [];
 
   searchBook(keyword: string): Book | null {
     return (
@@ -138,7 +153,7 @@ class LibraryOrchestrator {
     );
   }
 
-  borrowBook(keyword: string, user: User): void {
+  borrowBook(keyword: string, user: User): BorrowRecord | null {
     const book = this.searchBook(keyword);
 
     if (!book) {
@@ -157,10 +172,17 @@ class LibraryOrchestrator {
       throw new Error('User already exceeds the borrow limit');
     }
 
-    const borrow_record = new BookRecord(user.getIdCard(), copy.getId());
+    const borrow_record = new BorrowRecord(user.getIdCard(), copy.getId());
     copy.borrow();
     user.borrowBook(copy);
 
     return borrow_record;
+  }
+
+
+  returnBook(borrowRecord: BorrowRecord): number {
+    let fine = 0;
+
+    const bookCopy = this.books.find(book => book.)
   }
 }

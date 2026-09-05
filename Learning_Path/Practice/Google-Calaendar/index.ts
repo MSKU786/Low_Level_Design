@@ -38,3 +38,31 @@ class InMemoryRepository<T> implements Repoistory<T> {
     this.items.delete(id);
   }
 }
+
+class User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+class Event {
+  startTime: number;
+  endTime: number;
+  title: string;
+  description: string | null;
+  particpant: string[] = [];
+
+  constructor(
+    startTime: string,
+    endTime: string,
+    title: string,
+    desription: string = '',
+    particpant = [],
+  ) {
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.title = title;
+    this.description = desription;
+    this.particpant = particpant;
+  }
+}
